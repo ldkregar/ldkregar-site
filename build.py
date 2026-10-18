@@ -132,13 +132,18 @@ def fmt_authors(authors):
     if etal:
         names = names[:-1]
     mark = lambda n: f"<strong>{e(n)}</strong>" if me in n.lower() else e(n)
-    if len(names) <= 6:
-        return ", ".join(map(mark, names)) + (", et al." if etal else "")
     idx = next((i for i, n in enumerate(names) if me in n.lower()), None)
-    parts = [mark(n) for n in names[:3]]
-    if idx is not None and idx >= 3:
-        parts += ["…", mark(names[idx])]
-    return ", ".join(parts) + ", et al."
+    # short, complete author lists are shown in full
+    if not etal and len(names) <= 3:
+        return ", ".join(map(mark, names))
+    # otherwise: first author, then "…" and Lori's name if she isn't first or second, then et al.
+    parts = [mark(names[0])]
+    if idx is not None and idx > 0:
+        if idx > 1:
+            parts.append("…")
+        parts.append(mark(names[idx]))
+    last = idx is not None and idx == len(names) - 1 and not etal
+    return ", ".join(parts) + ("" if last else ", et al.")
 
 
 KIND_LABEL = {"article": "Journal article", "preprint": "Preprint", "thesis": "Thesis"}
