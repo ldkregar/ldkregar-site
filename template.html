@@ -228,7 +228,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <article class="theme">
           <canvas class="anim" data-anim="origins" aria-hidden="true"></canvas>
           <h3>Epigenetic origins of disease</h3>
-          <p>Methylation is laid down in the early embryo, leaving cells with different starting points. I work on tracing which of these marks persist and seed cancer, developmental and neuropsychiatric disorders.</p>
+          <p>Methylation is laid down in the early embryo, leaving cells with different starting points. I work on tracing which of these marks persist and contribute to cancer, developmental and neuropsychiatric disorders.</p>
         </article>
         <article class="theme">
           <canvas class="anim" data-anim="dating" aria-hidden="true"></canvas>
@@ -522,7 +522,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     ctx.font = "500 10.5px " + col("--mono"); ctx.fillStyle = muted;
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
     ctx.globalAlpha = fade * Math.min(1, Math.max(0, (cursor - xDepth(0)) / 40));
-    ctx.fillText(narrow ? "embryo" : "embryonic divisions", padL, top - 12);
+    ctx.fillText(narrow ? "early embryo" : "early embryonic divisions", padL, top - 12);
     ctx.textBaseline = "top"; ctx.strokeStyle = muted; ctx.lineWidth = 1;
     var ticks = [[xDepth(0), "conception", "left"], [xEmbryoEnd, "8 weeks", "center"], [xBirth, "birth", "center"],
                  [xAge(20), "20", "center"], [xAge(40), "40", "center"], [xAge(60), "60", "center"], [xEnd, "70 yrs", "right"]];
