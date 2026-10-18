@@ -122,7 +122,7 @@ section { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-top: 1px solid var(-
 .theme .anim { display: block; width: 100%; height: 120px; margin: .2rem 0 1rem; }
 .theme h3 { font-family: var(--display); font-variation-settings: "wdth" 105; font-weight: 650; font-size: 1.18rem; line-height: 1.25; margin: 0 0 .5rem; letter-spacing: -.01em; }
 .theme p { margin: 0; color: var(--muted); font-size: .98rem; }
-.theme a.inline { color: var(--meth); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.prose a.inline, .theme a.inline { color: var(--meth); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 
 /* ---------- publications */
 .featured { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.3rem, 3vw, 2.2rem); display: grid; gap: .9rem; margin-bottom: 2.2rem; position: relative; overflow: hidden; }
@@ -208,8 +208,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <header><p class="eyebrow">About</p><h2>Profile</h2></header>
       <div>
         <div class="prose">
-          <p>I'm a computational biologist working on the epigenetic origins of disease. My research shows that DNA methylation changes acquired in the womb can lead to breast cancer several decades later, and that this risk can be detected in a blood sample taken at any point after birth. I'm now extending this to show that the same mechanism underlies other diseases, and developing methods that use blood samples to predict risk in other tissues.</p>
-          <p>I'm a postdoctoral researcher in the Behjati and Coorens groups at Cambridge University Hospitals and EMBL-EBI, where I'm building an analytical pipeline to find in-utero epigenetic changes that lead to cancer, developmental and neuropsychiatric disorders. I did my PhD with Peter Campbell at the Wellcome Sanger Institute, developing a Bayesian method that dates when a methylation change arose, to any point in a person's life from conception onwards, and establishing the breadth and importance of early embryonic methylation changes.</p>
+          <p>I'm a computational biologist working on the epigenetic origins of disease. My ultimate goal is to establish how epigenetic changes and somatic mutations rewire the gene regulatory network to lead to disease, and to develop novel therapeutics that stop disease before the point of no return, as well as complementary diagnostic methods that precisely stratify eligible people ahead of them becoming patients. My research shows that DNA methylation changes acquired in the womb can lead to breast cancer several decades later, and that this risk can be detected in a blood sample taken at any point after birth. I'm now extending this body of work to show that the same mechanism underlies other diseases, and developing methods that use blood samples to predict risk in other inaccessible tissues.</p>
+          <p>I'm a postdoctoral researcher in the Behjati and Coorens groups at Cambridge University Hospitals and EMBL-EBI, where I'm building an analytical pipeline to find in-utero epigenetic changes that lead to cancer, developmental and neuropsychiatric disorders. I did my PhD with Peter Campbell at the Wellcome Sanger Institute, developing <a class="inline" href="https://github.com/ldkregar/memento" target="_blank" rel="noopener">Memento</a>, a Bayesian method that dates when a methylation change arose, to any point in a person's life from conception onwards, and establishing the breadth and importance of early embryonic methylation changes.</p>
           <p>Before moving into biology I studied business and economics, and I've worked with the Sanger translational office on taking my research towards a spin-out.</p>
         </div>
         <dl class="facts">
@@ -237,8 +237,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         </article>
         <article class="theme">
           <canvas class="anim" data-anim="blood" aria-hidden="true"></canvas>
-          <h3>Biomarker discovery</h3>
-          <p>Because these marks are encoded in early development and inherited across tissues, I work on profiling disease risk from blood at any age, long before symptoms appear.</p>
+          <h3>Non-invasive biomarker discovery</h3>
+          <p>Because these marks are encoded in early development and inherited across tissues, I work on estimating disease risk from blood at any age, long before symptoms appear.</p>
         </article>
       </div>
     </div>
