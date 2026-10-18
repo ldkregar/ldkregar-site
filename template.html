@@ -122,6 +122,7 @@ section { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-top: 1px solid var(-
 .theme .anim { display: block; width: 100%; height: 120px; margin: .2rem 0 1rem; }
 .theme h3 { font-family: var(--display); font-variation-settings: "wdth" 105; font-weight: 650; font-size: 1.18rem; line-height: 1.25; margin: 0 0 .5rem; letter-spacing: -.01em; }
 .theme p { margin: 0; color: var(--muted); font-size: .98rem; }
+.theme a.inline { color: var(--meth); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 
 /* ---------- publications */
 .featured { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.3rem, 3vw, 2.2rem); display: grid; gap: .9rem; margin-bottom: 2.2rem; position: relative; overflow: hidden; }
@@ -185,7 +186,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <p class="eyebrow">Computational epigenetics · Cambridge, UK</p>
       <h1>Lori D. Kregar</h1>
       <p class="thesis">Reading the past to <em>predict the future.</em></p>
-      <p class="sub">Some disease risk is written into our cells before we are born. As a postdoctoral researcher at Cambridge University Hospitals and EMBL-EBI, I find these early DNA methylation changes, date them, and read them from blood decades before disease appears.</p>
+      <p class="sub">Some disease risk is encoded in our cells before we are born. As a postdoctoral researcher at Cambridge University Hospitals and EMBL-EBI, I work on finding these early DNA methylation changes, understanding what they do and how widely they spread across the body, and predicting their impact on health.</p>
       <div class="actions">
         <a class="btn btn-solid" href="#publications">See the research</a>
         {{SUBSTACK_BUTTON}}
@@ -196,7 +197,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <figure class="fig">
       <canvas id="lineage" role="img" aria-label="Cell lineage tree from conception to age 70. A methylation mark gained in one embryonic cell is inherited by its descendants; one of them founds a clone at age 10 that replaces neighbouring lineages, a subclone arises within it at 40, and an unrelated clone appears at 35."></canvas>
       <figcaption>
-        <span><b>Fig. 1</b> · One embryonic cell gains a methylation mark that all its descendants carry. At age 10 one of them starts a clone that gradually replaces its neighbours; a subclone grows inside it from 40, and an unrelated clone appears at 35.</span>
+        <span><b>Fig. 1</b> · One embryonic cell gains a methylation mark that all its descendants carry. Because this happens before tissues differentiate, the marked cell hitchhikes on normal growth and its descendants end up in several tissues across the body. That makes the mark discoverable in easily accessible tissues such as blood, which could be screened to infer an individual's risk. Over a lifetime, further changes in the affected cell population can push it along the path to disease, culminating in cancer or other diseases.</span>
         <span class="legend"><span><i class="m"></i>embryonic mark</span><span><i class="ln" style="background:var(--meth)"></i>clone</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span><span><i class="ln" style="background:var(--unmeth)"></i>independent clone</span></span>
       </figcaption>
     </figure>
@@ -207,9 +208,9 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <header><p class="eyebrow">About</p><h2>Profile</h2></header>
       <div>
         <div class="prose">
-          <p>I'm a computational biologist working on the epigenetic origins of disease. My research shows that DNA methylation changes acquired in the womb can lead to breast cancer three to seven decades later, and that this risk can be detected in a blood sample taken at any point after birth.</p>
-          <p>I'm a postdoctoral researcher in the Behjati and Coorens groups at Cambridge University Hospitals and EMBL-EBI, where I'm building an analytical pipeline to find in-utero epigenetic changes that lead to cancer, developmental and neuropsychiatric disorders. I did my PhD with Peter Campbell at the Wellcome Sanger Institute, developing a Bayesian method that dates when a methylation change arose, to any point in a person's life from conception onwards.</p>
-          <p>Before moving into biology I trained in business and economics, and I've worked with the Sanger translational office on taking my research towards a spin-out.</p>
+          <p>I'm a computational biologist working on the epigenetic origins of disease. My research shows that DNA methylation changes acquired in the womb can lead to breast cancer several decades later, and that this risk can be detected in a blood sample taken at any point after birth. I'm now extending this to show that the same mechanism underlies other diseases, and developing methods that use blood samples to predict risk in other tissues.</p>
+          <p>I'm a postdoctoral researcher in the Behjati and Coorens groups at Cambridge University Hospitals and EMBL-EBI, where I'm building an analytical pipeline to find in-utero epigenetic changes that lead to cancer, developmental and neuropsychiatric disorders. I did my PhD with Peter Campbell at the Wellcome Sanger Institute, developing a Bayesian method that dates when a methylation change arose, to any point in a person's life from conception onwards, and establishing the breadth and importance of early embryonic methylation changes.</p>
+          <p>Before moving into biology I studied business and economics, and I've worked with the Sanger translational office on taking my research towards a spin-out.</p>
         </div>
         <dl class="facts">
           <div><dt>Now</dt><dd>Postdoctoral Researcher, Behjati &amp; Coorens groups, Cambridge University Hospitals &amp; EMBL-EBI</dd></div>
@@ -227,17 +228,17 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <article class="theme">
           <canvas class="anim" data-anim="origins" aria-hidden="true"></canvas>
           <h3>Epigenetic origins of disease</h3>
-          <p>Methylation is rewired in the early embryo, leaving cells with different starting points. I trace which of these marks persist and seed cancer, developmental and neuropsychiatric disorders.</p>
+          <p>Methylation is laid down in the early embryo, leaving cells with different starting points. I work on tracing which of these marks persist and seed cancer, developmental and neuropsychiatric disorders.</p>
         </article>
         <article class="theme">
           <canvas class="anim" data-anim="dating" aria-hidden="true"></canvas>
           <h3>Dating when changes arise</h3>
-          <p>I build Bayesian models that infer current and ancestral methylation states from large multi-omic datasets, and place each change on a person's lifetime, from conception onwards.</p>
+          <p>I develop Bayesian models that infer current and ancestral methylation states from large multi-omic datasets. I created <a class="inline" href="https://github.com/ldkregar/memento" target="_blank" rel="noopener">Memento</a>, which dates each change to a period in a person's lifetime, from conception onwards.</p>
         </article>
         <article class="theme">
           <canvas class="anim" data-anim="blood" aria-hidden="true"></canvas>
-          <h3>Risk from a blood draw</h3>
-          <p>Because these marks are inherited across tissues, I can profile disease risk from blood at any age, long before symptoms appear.</p>
+          <h3>Biomarker discovery</h3>
+          <p>Because these marks are encoded in early development and inherited across tissues, I work on profiling disease risk from blood at any age, long before symptoms appear.</p>
         </article>
       </div>
     </div>

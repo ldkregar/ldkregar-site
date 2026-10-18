@@ -188,12 +188,12 @@ def render_writing(posts):
     url = CFG.get("substack_url", "")
     if not url:
         return """
-        <p class="writing-lede">Notes on epigenetics, disease risk and turning research into products. Launching soon on Substack.</p>"""
+        <p class="writing-lede">Notes on epigenetics, disease risk and turning research into products.</p>"""
     items = "".join(
         f'<li><a href="{e(p["url"])}" target="_blank" rel="noopener">{e(p["title"])}</a><span>{e(p["date"])}</span></li>'
         for p in posts)
     body = f'<ul class="posts">{items}</ul>' if items else \
-        '<p class="writing-lede">Notes on epigenetics, disease risk and turning research into products. First posts are on the way.</p>'
+        '<p class="writing-lede">Notes on epigenetics, disease risk and turning research into products.</p>'
     return body + f'\n        <div class="actions"><a class="btn btn-solid" href="{e(url)}" target="_blank" rel="noopener">Subscribe on Substack</a></div>'
 
 
