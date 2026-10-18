@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lori D. Kregar</title>
+<meta name="description" content="Lori D. Kregar, PhD — computational biologist at Cambridge University Hospital and EMBL-EBI working on the epigenetic origins of disease.">
+<meta property="og:title" content="Lori D. Kregar">
+<meta property="og:description" content="Computational epigenetics: reading disease risk that is written into our cells before birth.">
+<meta property="og:url" content="https://ldkregar.com">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312263A'/%3E%3Ccircle cx='11' cy='16' r='4.5' fill='%23B9D6F2'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='%23F5F8FF' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,200..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","name":"Lori D. Kregar","honorificSuffix":"PhD","jobTitle":"Postdoctoral Researcher","url":"https://ldkregar.com","sameAs":["https://orcid.org/{{ORCID}}"],"affiliation":[{"@type":"Organization","name":"Cambridge University Hospitals"},{"@type":"Organization","name":"EMBL-EBI"}],"alumniOf":{"@type":"CollegeOrUniversity","name":"University of Cambridge"},"knowsAbout":["Epigenetics","DNA methylation","Cancer evolution","Bayesian statistics","Computational biology"]}
+</script>
+<style>
+/* Layout: one left-aligned column on a wide measure; a lineage-tree figure spans the hero,
+   sections are separated by hairlines and mono labels like a lab notebook index. */
+:root {
+  /* Trust Blue: #F5F8FF paper · #12263A ink · #0353A4 blue · #B9D6F2 sky */
+  --paper: #F5F8FF;
+  --surface: #FFFFFF;
+  --ink: #12263A;
+  --muted: #4A5D72;    /* ink, lightened for secondary text */
+  --line: #B9D6F2;
+  --meth: #0353A4;     /* methylated CpG — primary blue accent */
+  --unmeth: #5E95CF;   /* unmethylated CpG — sky, deepened so rings read on white */
+  --meth-soft: rgba(185, 214, 242, .45);
+  --display: "Mona Sans", "Helvetica Neue", Arial, sans-serif;
+  --body: "Mona Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --wrap: 72rem;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--body); font-size: 1.0625rem; line-height: 1.6;
+  font-variation-settings: "wdth" 100;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid var(--meth); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); }
+
+/* ---------- nav */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: .8rem; }
+.mark { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; font-family: var(--display); font-weight: 700; font-variation-settings: "wdth" 125; letter-spacing: .02em; font-size: .95rem; }
+.mark i { display: inline-flex; gap: 3px; }
+.mark i b { width: 8px; height: 8px; border-radius: 50%; display: block; }
+.mark i b:nth-child(1) { background: var(--meth); }
+.mark i b:nth-child(2) { border: 1.5px solid var(--unmeth); }
+.mark i b:nth-child(3) { background: var(--meth); }
+.nav ul { display: flex; gap: 1.4rem; list-style: none; margin: 0; padding: 0; font-family: var(--mono); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; }
+.nav ul a { text-decoration: none; color: var(--muted); }
+.nav ul a:hover { color: var(--ink); }
+@media (max-width: 760px) { .nav ul { display: none; } }
+
+/* ---------- shared bits */
+.eyebrow { font-family: var(--mono); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+.actions { display: flex; flex-wrap: wrap; gap: .7rem; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .7rem 1.15rem; border-radius: 999px; font-family: var(--mono); font-size: .8rem; letter-spacing: .04em; text-decoration: none; border: 1px solid var(--ink); transition: background .15s, color .15s; cursor: pointer; }
+.btn-solid { background: var(--ink); color: var(--paper); }
+.btn-solid:hover { background: var(--meth); border-color: var(--meth); color: #fff; }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--ink); color: var(--paper); }
+.btn[aria-disabled="true"] { border-style: dashed; border-color: var(--muted); color: var(--muted); cursor: default; }
+.btn[aria-disabled="true"]:hover { background: transparent; color: var(--muted); }
+
+/* ---------- hero */
+.hero { padding-block: clamp(3rem, 8vw, 6rem) 1.5rem; display: grid; gap: 1.6rem; }
+.hero h1 {
+  font-family: var(--display); font-weight: 600; font-variation-settings: "wdth" 112;
+  font-size: clamp(2.6rem, 8.2vw, 6.4rem); line-height: .92; letter-spacing: -.035em; margin: 0;
+  text-wrap: balance;
+}
+.hero h1 span { color: var(--muted); font-weight: 300; }
+.hero .thesis { font-family: var(--display); font-variation-settings: "wdth" 105; font-weight: 400; font-size: clamp(1.35rem, 2.6vw, 1.95rem); line-height: 1.22; margin: 0; max-width: 30ch; text-wrap: balance; letter-spacing: -.01em; }
+.hero .thesis em { font-style: normal; color: var(--meth); }
+.hero .sub { margin: 0; max-width: 60ch; color: var(--muted); }
+
+/* ---------- figure */
+.fig { margin: 0 0 clamp(3rem, 7vw, 5rem); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 1.2rem .9rem; }
+.fig canvas { width: 100%; height: clamp(260px, 36vw, 380px); display: block; }
+.fig figcaption { display: flex; justify-content: space-between; gap: 1rem 2rem; flex-wrap: wrap; font-family: var(--mono); font-size: .74rem; color: var(--muted); margin-top: .6rem; line-height: 1.5; }
+.fig figcaption b { color: var(--ink); font-weight: 500; }
+.legend { display: flex; gap: 1.1rem; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.legend .m { background: var(--meth); }
+.legend .ln { width: 16px; height: 2px; border-radius: 1px; }
+
+/* ---------- sections */
+section { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-top: 1px solid var(--line); scroll-margin-top: 4rem; }
+.sec { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 1.5rem 3rem; }
+@media (max-width: 860px) { .sec { grid-template-columns: minmax(0, 1fr); } }
+.sec > header { display: grid; gap: .4rem; align-content: start; }
+.sec h2 { font-family: var(--display); font-variation-settings: "wdth" 115; font-weight: 700; font-size: 1.5rem; letter-spacing: -.015em; line-height: 1.1; margin: 0; }
+.prose p { margin: 0 0 1em; max-width: 65ch; }
+.prose p:first-child { font-size: 1.2rem; line-height: 1.5; }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.4rem 2rem; margin: 2rem 0 0; padding: 0; }
+.facts div { border-top: 1px solid var(--line); padding-top: .8rem; min-width: 0; }
+.facts dt { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.facts dd { margin: .25rem 0 0; font-size: .97rem; line-height: 1.45; }
+
+.themes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+@media (max-width: 1000px) { .themes { grid-template-columns: minmax(0, 1fr); } .theme .anim { max-width: 26rem; } }
+.theme { border-top: 2px solid var(--ink); padding-top: 1rem; min-width: 0; }
+.theme .anim { display: block; width: 100%; height: 120px; margin: .2rem 0 1rem; }
+.theme h3 { font-family: var(--display); font-variation-settings: "wdth" 105; font-weight: 650; font-size: 1.18rem; line-height: 1.25; margin: 0 0 .5rem; letter-spacing: -.01em; }
+.theme p { margin: 0; color: var(--muted); font-size: .98rem; }
+
+/* ---------- publications */
+.featured { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.3rem, 3vw, 2.2rem); display: grid; gap: .9rem; margin-bottom: 2.2rem; position: relative; overflow: hidden; }
+.featured::after { content: ""; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, var(--meth-soft), transparent 70%); pointer-events: none; }
+.dot-live { width: 8px; height: 8px; border-radius: 50%; background: var(--meth); box-shadow: 0 0 0 0 var(--meth); animation: pulse 2.4s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--meth-soft), 0 0 0 0 var(--meth); } 70% { box-shadow: 0 0 0 10px transparent, 0 0 0 0 transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .dot-live { animation: none; } }
+.featured-title { font-family: var(--display); font-variation-settings: "wdth" 110; font-weight: 700; font-size: clamp(1.4rem, 3vw, 2.1rem); line-height: 1.12; letter-spacing: -.02em; margin: 0; max-width: 28ch; text-wrap: balance; }
+.featured-summary { margin: 0; max-width: 62ch; }
+.pubs { list-style: none; margin: 0; padding: 0; display: grid; }
+.pub { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); gap: 1rem; padding-block: 1.2rem; border-top: 1px solid var(--line); }
+.pub-year { font-family: var(--mono); font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: .15rem; }
+.pub-title { font-weight: 600; font-size: 1.08rem; line-height: 1.35; text-decoration: none; display: inline; background-image: linear-gradient(var(--meth), var(--meth)); background-size: 0 1px; background-repeat: no-repeat; background-position: 0 100%; transition: background-size .25s; }
+.pub-title:hover { background-size: 100% 1px; }
+.pub-authors { margin: .35rem 0 0; color: var(--muted); font-size: .92rem; line-height: 1.45; }
+.pub-authors strong { color: var(--ink); font-weight: 600; }
+.pub-meta { margin: .45rem 0 0; font-size: .88rem; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.pub-meta em { font-style: italic; }
+.pub-doi { font-family: var(--mono); font-size: .75rem; color: var(--muted); overflow-wrap: anywhere; }
+.tag { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; padding: .15rem .5rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.tag-article { border-color: var(--ink); color: var(--ink); }
+.tag-preprint { border-color: var(--meth); color: var(--meth); }
+.pub-note { margin: 1.4rem 0 0; font-family: var(--mono); font-size: .74rem; color: var(--muted); }
+.pub-note a { color: var(--ink); }
+
+/* ---------- talks */
+.talks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 0 2.5rem; }
+.talks li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; padding-block: .85rem; border-top: 1px solid var(--line); align-items: baseline; }
+.talks .where { font-family: var(--mono); font-size: .74rem; color: var(--muted); text-align: right; white-space: nowrap; }
+.talks .kind { display: block; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .09em; color: var(--meth); margin-bottom: .1rem; }
+
+/* ---------- writing + contact */
+.writing-lede { margin: 0 0 1.3rem; max-width: 52ch; font-size: 1.15rem; line-height: 1.5; }
+.posts { list-style: none; padding: 0; margin: 0 0 1.4rem; }
+.posts li { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-block: .8rem; border-top: 1px solid var(--line); }
+.posts span { font-family: var(--mono); font-size: .76rem; color: var(--muted); }
+.contact-line { font-family: var(--display); font-variation-settings: "wdth" 112; font-weight: 650; font-size: clamp(1.4rem, 4vw, 2.4rem); letter-spacing: -.02em; margin: 0 0 1.4rem; overflow-wrap: anywhere; }
+.contact-line a { text-decoration: none; background-image: linear-gradient(var(--meth), var(--meth)); background-size: 100% 2px; background-repeat: no-repeat; background-position: 0 100%; }
+footer { border-top: 1px solid var(--line); padding-block: 1.6rem 2.4rem; font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .6rem 2rem; }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="mark" href="#top"><i aria-hidden="true"><b></b><b></b><b></b></i>LDK</a>
+    <ul>
+      <li><a href="#research">Research</a></li>
+      <li><a href="#publications">Publications</a></li>
+      <li><a href="#talks">Talks</a></li>
+      <li><a href="#writing">Writing</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main id="top">
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Computational epigenetics · Cambridge, UK</p>
+      <h1>Lori D. Kregar</h1>
+      <p class="thesis">Reading the past to <em>predict the future.</em></p>
+      <p class="sub">Some disease risk is written into our cells before we are born. As a postdoctoral researcher at Cambridge University Hospitals and EMBL-EBI, I find these early DNA methylation changes, date them, and read them from blood decades before disease appears.</p>
+      <div class="actions">
+        <a class="btn btn-solid" href="#publications">See the research</a>
+        {{SUBSTACK_BUTTON}}
+        <a class="btn btn-ghost" href="https://orcid.org/{{ORCID}}" target="_blank" rel="noopener">ORCID</a>
+      </div>
+    </header>
+
+    <figure class="fig">
+      <canvas id="lineage" role="img" aria-label="Cell lineage tree from conception to age 70. A methylation mark gained in one embryonic cell is inherited by its descendants; one of them founds a clone at age 10 that replaces neighbouring lineages, a subclone arises within it at 40, and an unrelated clone appears at 35."></canvas>
+      <figcaption>
+        <span><b>Fig. 1</b> · One embryonic cell gains a methylation mark that all its descendants carry. At age 10 one of them starts a clone that gradually replaces its neighbours; a subclone grows inside it from 40, and an unrelated clone appears at 35.</span>
+        <span class="legend"><span><i class="m"></i>embryonic mark</span><span><i class="ln" style="background:var(--meth)"></i>clone</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span><span><i class="ln" style="background:var(--unmeth)"></i>independent clone</span></span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <section id="about">
+    <div class="wrap sec">
+      <header><p class="eyebrow">About</p><h2>Profile</h2></header>
+      <div>
+        <div class="prose">
+          <p>I'm a computational biologist working on the epigenetic origins of disease. My research shows that DNA methylation changes acquired in the womb can lead to breast cancer three to seven decades later, and that this risk can be detected in a blood sample taken at any point after birth.</p>
+          <p>I'm a postdoctoral researcher in the Behjati and Coorens groups at Cambridge University Hospitals and EMBL-EBI, where I'm building an analytical pipeline to find in-utero epigenetic changes that lead to cancer, developmental and neuropsychiatric disorders. I did my PhD with Peter Campbell at the Wellcome Sanger Institute, developing a Bayesian method that dates when a methylation change arose, to any point in a person's life from conception onwards.</p>
+          <p>Before moving into biology I trained in business and economics, and I've worked with the Sanger translational office on taking my research towards a spin-out.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Now</dt><dd>Postdoctoral Researcher, Behjati &amp; Coorens groups, Cambridge University Hospitals &amp; EMBL-EBI</dd></div>
+          <div><dt>PhD</dt><dd>University of Cambridge, Wellcome Sanger Institute. Epigenetic heritability in somatic cells</dd></div>
+          <div><dt>Training</dt><dd>MPhil Computational Biology, Cambridge · BSc Business &amp; Economics, Ljubljana</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section id="research">
+    <div class="wrap sec">
+      <header><p class="eyebrow">Research</p><h2>What I work on</h2></header>
+      <div class="themes">
+        <article class="theme">
+          <canvas class="anim" data-anim="origins" aria-hidden="true"></canvas>
+          <h3>Epigenetic origins of disease</h3>
+          <p>Methylation is rewired in the early embryo, leaving cells with different starting points. I trace which of these marks persist and seed cancer, developmental and neuropsychiatric disorders.</p>
+        </article>
+        <article class="theme">
+          <canvas class="anim" data-anim="dating" aria-hidden="true"></canvas>
+          <h3>Dating when changes arise</h3>
+          <p>I build Bayesian models that infer current and ancestral methylation states from large multi-omic datasets, and place each change on a person's lifetime, from conception onwards.</p>
+        </article>
+        <article class="theme">
+          <canvas class="anim" data-anim="blood" aria-hidden="true"></canvas>
+          <h3>Risk from a blood draw</h3>
+          <p>Because these marks are inherited across tissues, I can profile disease risk from blood at any age, long before symptoms appear.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="publications">
+    <div class="wrap sec">
+      <header><p class="eyebrow">Publications</p><h2>Papers &amp; preprints</h2></header>
+      <div>
+        {{FEATURED}}
+        <ul class="pubs">{{PUBLICATIONS}}
+        </ul>
+        <p class="pub-note">Updated automatically from <a href="https://europepmc.org/search?query=AUTHORID%3A%22{{ORCID}}%22" target="_blank" rel="noopener">Europe PMC</a> via ORCID · last checked {{UPDATED}}</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="talks">
+    <div class="wrap sec">
+      <header><p class="eyebrow">Talks</p><h2>Selected talks</h2></header>
+      <ul class="talks">
+        <li><span><span class="kind">Invited</span>Festival of Genomics 2026</span><span class="where">London, UK</span></li>
+        <li><span><span class="kind">Late-breaking poster</span>AACR Annual Meeting 2025</span><span class="where">USA</span></li>
+        <li><span><span class="kind">Selected talk</span>AACR: DNA methylation, clonal hematopoiesis &amp; cancer</span><span class="where">San Diego, CA</span></li>
+        <li><span><span class="kind">Selected talk</span>Keystone: Somatic mosaicism in development, aging &amp; disease</span><span class="where">Breckenridge, CO</span></li>
+        <li><span><span class="kind">Invited</span>KAIST Symposium on Somatic Genomics</span><span class="where">Daejeon, Korea</span></li>
+        <li><span><span class="kind">Selected talk</span>AACR: Translating cancer evolution &amp; data science</span><span class="where">Boston, MA</span></li>
+        <li><span><span class="kind">Invited</span>127th Titisee Conference on Somatic Mosaicism</span><span class="where">Germany</span></li>
+        <li><span><span class="kind">Selected talk</span>Gordon Research Conference: Epigenetics</span><span class="where">Holderness, NH</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="writing">
+    <div class="wrap sec">
+      <header><p class="eyebrow">Writing</p><h2>Substack</h2></header>
+      <div>{{WRITING}}
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap sec">
+      <header><p class="eyebrow">Contact</p><h2>Get in touch</h2></header>
+      <div>
+        <p class="contact-line">ldkregar at pm dot me</p>
+        <div class="actions">
+          <a class="btn btn-ghost" href="https://orcid.org/{{ORCID}}" target="_blank" rel="noopener">ORCID {{ORCID}}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© {{YEAR}} Lori D. Kregar</span>
+    <span>Cambridge, UK</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Copy email
+  var btn = document.getElementById("copy-email");
+  if (btn) btn.addEventListener("click", function () {
+    var email = btn.getAttribute("data-email");
+    var done = function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy email"; }, 1800); };
+    try {
+      navigator.clipboard.writeText(email).then(done, function () { selectEmail(); });
+    } catch (e) { selectEmail(); }
+  });
+  function selectEmail() {
+    var el = document.querySelector(".contact-line a");
+    var r = document.createRange(); r.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+
+  // Lineage figure
+  var cv = document.getElementById("lineage");
+  if (!cv) return;
+  var ctx = cv.getContext("2d");
+
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  // Build a binary lineage of embryonic divisions (fixed seed so it always looks the same)
+  var DEPTH = 5;
+  function build() {
+    var leaves = [];
+    function node(d) {
+      var n = { d: d, kids: [] };
+      if (d < DEPTH) { n.kids = [node(d + 1), node(d + 1)]; } else { leaves.push(n); }
+      return n;
+    }
+    var root = node(0);
+    leaves.forEach(function (l, i) { l.i = i; });
+    (function ys(n) { if (!n.kids.length) return; n.kids.forEach(ys); })(root);
+    return { root: root, leaves: leaves };
+  }
+  var T = build();
+  // Mark the epimutation on one depth-2 node
+  var hot = T.root.kids[0].kids[1];
+  (function flag(n) { n.hot = true; n.kids.forEach(flag); })(hot);
+  hot.origin = true;
+  var hotLeaves = T.leaves.filter(function (l) { return l.hot; });
+  var cloneLeaf = hotLeaves[Math.floor(hotLeaves.length / 2)];
+
+  function col(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  // Figure 1 as an animation: a single cell divides, its descendants travel left to right and leave their
+  // lineages behind as a trace. Sparks mark where heritable changes arise; the clones they found are coloured.
+  var reduceFig = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var FIG = { L: 15, start: 1.0, embryoEnd: 4.6, sweepEnd: 11.2, fadeAt: 14.2 };
+
+  function bezAt(x1, y1, x2, y2, x) {   // y on the S-curve at a given x (x is monotonic along the curve)
+    var m = (x1 + x2) / 2, lo = 0, hi = 1, t = 0.5;
+    for (var i = 0; i < 22; i++) {
+      t = (lo + hi) / 2; var u = 1 - t;
+      var xt = u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2;
+      if (xt < x) lo = t; else hi = t;
+    }
+    var u2 = 1 - t; return u2*u2*u2*y1 + 3*u2*u2*t*y1 + 3*u2*t*t*y2 + t*t*t*y2;
+  }
+  function spark(x, y, R, color, age, t) {
+    if (age <= 0) return;
+    var burst = Math.min(1, age / 0.6), pop = age < 0.25 ? (age / 0.25) * 1.35 : 1 + 0.35 * Math.max(0, 1 - (age - 0.25) / 0.4);
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    if (burst < 1) {
+      ctx.globalAlpha = 1 - burst; ctx.lineWidth = 1.4;
+      for (var k = 0; k < 8; k++) {
+        var a = k * Math.PI / 4 + Math.PI / 8, r1 = R * (0.8 + 1.4 * burst), r2 = r1 + R * 0.8 * (1 - burst * 0.5);
+        ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); ctx.lineTo(x + Math.cos(a) * r2, y + Math.sin(a) * r2); ctx.stroke();
+      }
+    }
+    var RR = R * pop, rIn = RR * 0.28, rot = reduceFig ? 0 : Math.sin(t * 1.4) * 0.12;
+    ctx.globalAlpha = 1; ctx.beginPath();
+    for (var q = 0; q < 8; q++) {
+      var a2 = rot + q * Math.PI / 4 - Math.PI / 2, rad = q % 2 ? rIn : RR;
+      q ? ctx.lineTo(x + Math.cos(a2) * rad, y + Math.sin(a2) * rad) : ctx.moveTo(x + Math.cos(a2) * rad, y + Math.sin(a2) * rad);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+
+  function draw(time) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = cv.clientWidth, H = cv.clientHeight;
+    if (!W || !H) return;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    var ink = col("--ink"), muted = col("--muted"), line = col("--line"), meth = col("--meth"), sky = col("--unmeth"), paper = col("--paper");
+    var narrow = W < 560;
+    var padL = 8, padR = 8, top = 26, axisY = H - 24, bottom = axisY - 12;
+    var xEnd = W - padR - 2;
+
+    // Time axis: embryo (conception→8 wk) is stretched, then birth, then ages 0–70
+    var xEmbryoEnd = padL + (xEnd - padL) * 0.26;
+    var xBirth = padL + (xEnd - padL) * 0.37;
+    function xAge(a) { return xBirth + (xEnd - xBirth) * (a / 70); }
+    function xDepth(d) { return padL + 6 + (xEmbryoEnd - padL - 6) * (d / DEPTH); }
+
+    var n = T.leaves.length, span = bottom - top, gap = span / n;
+    function rowY(r) { return top + span * (r + 0.5) / n; }
+    T.leaves.forEach(function (l) { l.y = rowY(l.i); });
+    (function setY(nd) { if (!nd.kids.length) return nd.y; nd.y = (setY(nd.kids[0]) + setY(nd.kids[1])) / 2; return nd.y; })(T.root);
+
+    function curve(x1, y1, x2, y2) {
+      var mx = (x1 + x2) / 2;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.bezierCurveTo(mx, y1, mx, y2, x2, y2); ctx.stroke();
+    }
+
+    // ---------- geometry (as in the static figure)
+    var tracks = T.leaves.map(function (l) {
+      return { row: l.i, y: l.y, x0: xDepth(DEPTH), x1: xEnd, color: l.hot ? meth : line, cell: l.hot ? meth : muted, alpha: l.hot ? 0.6 : 1, w: 1 };
+    });
+    var CLONES = [
+      { row: 12, age: 10, lo: 8,  hi: 15, ages: [14, 19, 25], color: meth, w: 1.7 },
+      { row: 23, age: 35, lo: 22, hi: 25, ages: [40, 46],     color: sky,  w: 1.7 },
+      { row: 13, age: 40, lo: 12, hi: 15, ages: [45, 51],     color: ink,  w: 1.9 }
+    ];
+    CLONES.forEach(function (c) {
+      var x0 = xAge(c.age), y0 = (rowY(c.lo) + rowY(c.hi)) / 2, jog = Math.max(10, gap * 2);
+      var parent = tracks.filter(function (t) { return t.row === c.row && t.x0 < x0 && t.x1 > x0; })[0];
+      if (parent) { parent.x1 = x0 - jog; c.link = [x0 - jog, parent.y, x0, y0, parent.color, parent.alpha, parent.w, parent.cell]; }
+      c.x0 = x0; c.y0 = y0; c.segs = [];
+      var fresh = [];
+      (function split(xp, yp, lo, hi, k) {
+        if (lo === hi) { fresh.push({ row: lo, y: rowY(lo), x0: xp, x1: xEnd, color: c.color, cell: c.color, alpha: 1, w: c.w }); return; }
+        var mid = Math.floor((lo + hi) / 2), xc = xAge(c.ages[k]);
+        [[lo, mid], [mid + 1, hi]].forEach(function (rg) {
+          var yc = (rowY(rg[0]) + rowY(rg[1])) / 2;
+          c.segs.push([xp, yp, xc, yc]);
+          split(xc, yc, rg[0], rg[1], k + 1);
+        });
+      })(x0, y0, c.lo, c.hi, 0);
+      c.segs.forEach(function (s) {
+        var ya = Math.min(s[1], s[3]) - 0.5, yb = Math.max(s[1], s[3]) + 0.5;
+        tracks.forEach(function (t) {
+          if (t === parent || t.row < c.lo || t.row > c.hi) return;
+          if (t.y >= ya && t.y <= yb && t.x1 > s[0]) t.x1 = Math.max(t.x0, s[0] - 3);
+        });
+      });
+      tracks = tracks.concat(fresh);
+    });
+
+    // ---------- where the travelling front is
+    var s = reduceFig ? FIG.sweepEnd + 1 : time % FIG.L, cursor;
+    if (s < FIG.start) cursor = xDepth(0);
+    else if (s < FIG.embryoEnd) cursor = xDepth(0) + (xEmbryoEnd - xDepth(0)) * ((s - FIG.start) / (FIG.embryoEnd - FIG.start));
+    else cursor = xEmbryoEnd + (xEnd - xEmbryoEnd) * Math.min(1, (s - FIG.embryoEnd) / (FIG.sweepEnd - FIG.embryoEnd));
+    var done = cursor >= xEnd - 0.01;
+    var fade = 1 - Math.min(1, Math.max(0, (s - FIG.fadeAt) / 0.8));
+    function timeAtX(x) {   // when the front passed a given x
+      if (x <= xEmbryoEnd) return FIG.start + (FIG.embryoEnd - FIG.start) * (x - xDepth(0)) / (xEmbryoEnd - xDepth(0));
+      return FIG.embryoEnd + (FIG.sweepEnd - FIG.embryoEnd) * (x - xEmbryoEnd) / (xEnd - xEmbryoEnd);
+    }
+
+    // ---------- the trace: everything to the left of the front
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.rect(0, 0, cursor + 0.5, H); ctx.clip();
+
+    ctx.fillStyle = col("--meth-soft"); ctx.globalAlpha = 0.45 * fade;
+    ctx.fillRect(padL, top - 6, xEmbryoEnd - padL, span + 12);
+    CLONES.forEach(function (c) {
+      var xl = xAge(c.ages[c.ages.length - 1]), yt = rowY(c.lo) - gap * 0.5, yb = rowY(c.hi) + gap * 0.5, mx = (c.x0 + xl) / 2;
+      ctx.beginPath(); ctx.moveTo(c.x0, c.y0);
+      ctx.bezierCurveTo(mx, c.y0, mx, yt, xl, yt); ctx.lineTo(xEnd, yt); ctx.lineTo(xEnd, yb); ctx.lineTo(xl, yb);
+      ctx.bezierCurveTo(mx, yb, mx, c.y0, c.x0, c.y0); ctx.closePath();
+      ctx.fillStyle = c.color; ctx.globalAlpha = 0.07 * fade; ctx.fill();
+    });
+
+    var fronts = [];   // [x1,y1,x2,y2,isCurve,cellColour] for every path the front can be on
+    ctx.lineCap = "round";
+    (function branch(nd) {
+      nd.kids.forEach(function (k) {
+        var blue = k.hot && k !== hot;   // the spark sits on the marked cell; only what descends from it is blue
+        ctx.strokeStyle = blue ? meth : ink; ctx.globalAlpha = (blue ? 1 : 0.5) * fade; ctx.lineWidth = blue ? 1.8 : 1.1;
+        curve(xDepth(nd.d), nd.y, xDepth(k.d), k.y);
+        fronts.push([xDepth(nd.d), nd.y, xDepth(k.d), k.y, true, blue ? meth : ink]);
+        branch(k);
+      });
+    })(T.root);
+    tracks.forEach(function (t) {
+      if (t.x1 - t.x0 < 1) return;
+      ctx.strokeStyle = t.color; ctx.globalAlpha = t.alpha * fade; ctx.lineWidth = t.w;
+      ctx.beginPath(); ctx.moveTo(t.x0, t.y); ctx.lineTo(t.x1, t.y); ctx.stroke();
+      fronts.push([t.x0, t.y, t.x1, t.y, false, t.cell, t.x1 >= xEnd - 0.5]);
+    });
+    CLONES.forEach(function (c) {
+      if (c.link) {
+        ctx.strokeStyle = c.link[4]; ctx.globalAlpha = c.link[5] * fade; ctx.lineWidth = c.link[6];
+        curve(c.link[0], c.link[1], c.link[2], c.link[3]);
+        fronts.push([c.link[0], c.link[1], c.link[2], c.link[3], true, c.link[7]]);
+      }
+      ctx.strokeStyle = c.color; ctx.globalAlpha = fade; ctx.lineWidth = c.w;
+      c.segs.forEach(function (sg) { curve(sg[0], sg[1], sg[2], sg[3]); fronts.push([sg[0], sg[1], sg[2], sg[3], true, c.color]); });
+    });
+
+    // axis line grows with the front
+    ctx.strokeStyle = muted; ctx.globalAlpha = 0.6 * fade; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, axisY); ctx.lineTo(xEnd, axisY); ctx.stroke();
+    ctx.restore();
+
+    // ---------- root, sparks, labels
+    ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.arc(xDepth(0), T.root.y, 2.6, 0, Math.PI * 2); ctx.fillStyle = ink; ctx.fill();
+    var sparkR = Math.max(5, Math.min(8, gap * 0.9));
+    var marks = [[xDepth(hot.d), hot.y, meth]].concat(CLONES.map(function (c) { return [c.x0, c.y0, c.color]; }));
+    marks.forEach(function (m) {
+      if (cursor < m[0]) return;
+      var age = reduceFig ? 9 : s - timeAtX(m[0]);
+      ctx.save(); ctx.globalAlpha = fade;
+      ctx.beginPath(); ctx.arc(m[0], m[1], sparkR * 0.75, 0, Math.PI * 2); ctx.fillStyle = paper; ctx.fill();
+      spark(m[0], m[1], sparkR, m[2], age, time);
+      ctx.restore();
+    });
+
+    ctx.globalAlpha = fade;
+    ctx.font = "500 10.5px " + col("--mono"); ctx.fillStyle = muted;
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    ctx.globalAlpha = fade * Math.min(1, Math.max(0, (cursor - xDepth(0)) / 40));
+    ctx.fillText(narrow ? "embryo" : "embryonic divisions", padL, top - 12);
+    ctx.textBaseline = "top"; ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    var ticks = [[xDepth(0), "conception", "left"], [xEmbryoEnd, "8 weeks", "center"], [xBirth, "birth", "center"],
+                 [xAge(20), "20", "center"], [xAge(40), "40", "center"], [xAge(60), "60", "center"], [xEnd, "70 yrs", "right"]];
+    if (narrow) ticks = ticks.filter(function (tk) { return tk[1] !== "20" && tk[1] !== "60" && tk[1] !== "8 weeks"; });
+    ticks.forEach(function (tk) {
+      var a = done ? 1 : Math.min(1, Math.max(0, (cursor - tk[0] + 2) / 18));
+      if (a <= 0) return;
+      ctx.globalAlpha = fade * a;
+      ctx.beginPath(); ctx.moveTo(tk[0], axisY - 3); ctx.lineTo(tk[0], axisY + 3); ctx.stroke();
+      ctx.textAlign = tk[2]; ctx.fillText(tk[1], tk[0], axisY + 7);
+    });
+
+    // ---------- the cells at the front
+    var cr = Math.max(2.2, Math.min(3.4, gap * 0.36));
+    ctx.globalAlpha = fade;
+    fronts.forEach(function (f) {
+      var onIt = done ? f[6] : (cursor >= f[0] && cursor < f[2]);
+      if (!onIt) return;
+      var x = done ? f[2] : cursor, y = done ? f[3] : (f[4] ? bezAt(f[0], f[1], f[2], f[3], cursor) : f[1]);
+      ctx.beginPath(); ctx.arc(x, y, cr, 0, Math.PI * 2); ctx.fillStyle = f[5]; ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // run while visible; reduced motion shows the finished figure
+  var figClock = null, figVisible = false, figRaf = 0;
+  function figFrame(now) {
+    if (figClock === null) figClock = now;
+    draw((now - figClock) / 1000);
+    figRaf = figVisible && !reduceFig ? requestAnimationFrame(figFrame) : 0;
+  }
+  draw(FIG.sweepEnd + 1);   // finished figure as the resting frame until it scrolls into view
+  if (!reduceFig && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (es) {
+      figVisible = es[0].isIntersecting;
+      if (figVisible && !figRaf) figRaf = requestAnimationFrame(figFrame);
+    }).observe(cv);
+  }
+  window.addEventListener("resize", function () { if (!figRaf) draw(reduceFig || figClock === null ? FIG.sweepEnd + 1 : (performance.now() - figClock) / 1000); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!figRaf) draw(FIG.sweepEnd + 1); });
+})();
+</script>
+<script>
+// Research theme animations: one shared loop, paused when off-screen, static final frame for reduced motion
+(function () {
+  var canvases = [].slice.call(document.querySelectorAll("canvas.anim"));
+  if (!canvases.length) return;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var css = getComputedStyle(document.documentElement);
+  function col(n) { return css.getPropertyValue(n).trim(); }
+  var C = { ink: col("--ink"), muted: col("--muted"), line: col("--line"), blue: col("--meth"), sky: col("--unmeth"), paper: col("--paper"), mono: col("--mono") };
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function ease(v) { v = clamp(v); return v * v * (3 - 2 * v); }
+
+  function fit(cv) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    var ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    return { ctx: ctx, W: W, H: H };
+  }
+  // Partial cubic "S" curve from (x1,y1) to (x2,y2), drawn up to fraction f
+  function sCurve(ctx, x1, y1, x2, y2, f) {
+    if (f <= 0) return;
+    ctx.beginPath(); ctx.moveTo(x1, y1);
+    var steps = 16, m = (x1 + x2) / 2;
+    for (var i = 1; i <= steps * f; i++) {
+      var t = i / steps, u = 1 - t;
+      var x = u * u * u * x1 + 3 * u * u * t * m + 3 * u * t * t * m + t * t * t * x2;
+      var y = u * u * u * y1 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y2;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // 1 · Epigenetic origins: a scrambled column of cells sorts itself one cell at a time from the top,
+  // the family tree is drawn back from the cells to the root, and a spark on the branch above the
+  // two white cells marks where their shared change arose; blue then runs from the spark to both cells.
+  var O = { D: 3, N: 8, L: 11, T0: 0.8, STEP: 0.9, START: [3, 6, 0, 5, 1, 7, 2, 4], WHITE: { 4: true, 5: true } /* the two related cells (drawn solid blue) */ };
+  function lerp(a, b, f) { return a + (b - a) * f; }
+  function bez(x1, y1, x2, y2, t) {
+    var m = (x1 + x2) / 2, u = 1 - t;
+    return [u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2, u*u*u*y1 + 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t*y2];
+  }
+  function seg(ctx, x1, y1, x2, y2, t0, t1) {
+    if (t1 <= t0) return;
+    var steps = 24, p = bez(x1, y1, x2, y2, t0);
+    ctx.beginPath(); ctx.moveTo(p[0], p[1]);
+    for (var i = 1; i <= steps; i++) { p = bez(x1, y1, x2, y2, t0 + (t1 - t0) * i / steps); ctx.lineTo(p[0], p[1]); }
+    ctx.stroke();
+  }
+  function cellPositions(s) {
+    var N = O.N, arr = [], slot = [], xo = [], cursor = O.T0, i, k;
+    O.START.forEach(function (sl, cell) { arr[sl] = cell; });
+    function settle() { for (k = 0; k < N; k++) { slot[arr[k]] = k; xo[arr[k]] = 0; } }
+    for (i = 0; i < N; i++) {
+      var p = arr.indexOf(i);
+      if (p === i) continue;
+      if (s < cursor) break;
+      var u = (s - cursor) / O.STEP;
+      if (u >= 1) { arr.splice(p, 1); arr.splice(i, 0, i); cursor += O.STEP; continue; }
+      settle();
+      var a = ease(u / 0.3), b = ease((u - 0.3) / 0.4), c = ease((u - 0.7) / 0.3);
+      for (k = i; k < p; k++) slot[arr[k]] = k + b;
+      slot[i] = p + (i - p) * b; xo[i] = a - c;
+      return { slot: slot, xo: xo };
+    }
+    settle();
+    return { slot: slot, xo: xo };
+  }
+  function origins(cv, t) {
+    var g = fit(cv), ctx = g.ctx, W = g.W, H = g.H, D = O.D, N = O.N;
+    var s = reduce ? 9 : t % O.L;
+    var r = Math.max(3.5, Math.min(6, H / 22));
+    var top = r + 4, bot = H - r - 4, x0 = 8, xTip = W - r - 6;
+    function X(d) { return x0 + (xTip - x0) * d / D; }
+    function Y(d, i) { var w = N >> d; return top + (bot - top) * ((i * w + w / 2) / N); }
+
+    // timeline: 0.8–4.4 s sorting · 4.5–6.3 s tree drawn tips→root · 6.6 s spark · 7.0–8.2 s blue runs to the tips
+    // 9.0 s tree fades · 9.8–11 s column resets
+    var treeFade = 1 - clamp((s - 9.0) / 0.7);
+    var lvl = [null, [5.7, 6.3], [5.1, 5.7], [4.5, 5.1]];
+    ctx.lineCap = "round";
+    for (var d = D; d >= 1; d--) {
+      var f = clamp((s - lvl[d][0]) / (lvl[d][1] - lvl[d][0]));
+      for (var i = 0; i < (1 << d); i++) {
+        ctx.strokeStyle = C.ink; ctx.globalAlpha = treeFade * 0.45; ctx.lineWidth = 1.3;
+        sCurve(ctx, X(d), Y(d, i), X(d - 1), Y(d - 1, i >> 1), f);
+      }
+    }
+    var rootOn = clamp((s - lvl[1][1]) / 0.25);
+    if (rootOn > 0) { ctx.globalAlpha = treeFade * rootOn; ctx.beginPath(); ctx.arc(X(0), Y(0, 0), 3, 0, Math.PI * 2); ctx.fillStyle = C.ink; ctx.fill(); }
+
+    // the change: spark halfway along the branch above the two white cells, then bold blue to both tips
+    var px = X(D - 2), py = Y(D - 2, 1), nx = X(D - 1), ny = Y(D - 1, 2);
+    var sparkAt = 6.6, run1 = ease((s - 7.0) / 0.5), run2 = ease((s - 7.5) / 0.7);
+    ctx.strokeStyle = C.blue; ctx.lineWidth = 2.6; ctx.globalAlpha = treeFade;
+    seg(ctx, px, py, nx, ny, 0.5, 0.5 + 0.5 * run1);
+    if (run2 > 0) { seg(ctx, nx, ny, xTip, Y(D, 4), 0, run2); seg(ctx, nx, ny, xTip, Y(D, 5), 0, run2); }
+    var sp = bez(px, py, nx, ny, 0.5), age = s - sparkAt;
+    if (age > 0) {
+      var burst = clamp(age / 0.6), pop = age < 0.25 ? ease(age / 0.25) * 1.35 : 1 + 0.35 * (1 - ease((age - 0.25) / 0.4));
+      // radiating rays that fly out and fade
+      ctx.globalAlpha = treeFade * (1 - burst); ctx.lineWidth = 1.4; ctx.strokeStyle = C.blue;
+      for (var k = 0; k < 8; k++) {
+        var ang = k * Math.PI / 4 + Math.PI / 8, r1 = r * (0.9 + 1.6 * burst), r2 = r1 + r * 0.9 * (1 - burst * 0.5);
+        ctx.beginPath(); ctx.moveTo(sp[0] + Math.cos(ang) * r1, sp[1] + Math.sin(ang) * r1);
+        ctx.lineTo(sp[0] + Math.cos(ang) * r2, sp[1] + Math.sin(ang) * r2); ctx.stroke();
+      }
+      // four-point sparkle that stays
+      var R = r * 1.25 * pop, rIn = R * 0.28, rot = reduce ? 0 : Math.sin(t * 1.4) * 0.12;
+      ctx.globalAlpha = treeFade; ctx.fillStyle = C.blue;
+      ctx.beginPath();
+      for (var q = 0; q < 8; q++) {
+        var a2 = rot + q * Math.PI / 4 - Math.PI / 2, rad = q % 2 ? rIn : R;
+        var qx = sp[0] + Math.cos(a2) * rad, qy = sp[1] + Math.sin(a2) * rad;
+        q ? ctx.lineTo(qx, qy) : ctx.moveTo(qx, qy);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+
+    // cells
+    var resetting = s >= 10.0, pos = cellPositions(resetting ? 0 : s);
+    ctx.globalAlpha = s < 9.8 ? 1 : resetting ? clamp((s - 10.2) / 0.6) : 1 - clamp((s - 9.8) / 0.2);
+    for (var j = 0; j < N; j++) {
+      var cx = xTip - pos.xo[j] * r * 4.5, cy = Y(D, 0) + (Y(D, 1) - Y(D, 0)) * pos.slot[j];
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      if (O.WHITE[j]) { ctx.fillStyle = C.blue; ctx.fill(); }
+      else { ctx.fillStyle = "#FFFFFF"; ctx.fill(); ctx.strokeStyle = C.blue; ctx.lineWidth = 1.4; ctx.stroke(); }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // 2 · Dating: over a faint lineage tree, a broad estimate of when a change arose sharpens into a
+  // sharp peak just after conception, where the tree's early branch points sit
+  function dating(cv, t) {
+    var g = fit(cv), ctx = g.ctx, W = g.W, H = g.H, L = 6.5, s = reduce ? 4 : t % L;
+    var x0 = 6, x1 = W - 6, axisY = H - 18, peakMax = axisY - 8;
+    var sharp = ease((s - 0.4) / 2.6);
+    var fade = 1 - clamp((s - 5.8) / 0.7);
+    function UX(u) { return x0 + (x1 - x0) * u; }
+
+    // background tree: early embryonic splits, lineages running on to age 70, and one lineage that
+    // runs on as a long single branch until midlife, where it splits into a subclone
+    var D = 4, tTop = 5, tBot = axisY - 7, splits = [0.02, 0.06, 0.1, 0.14, 0.18];
+    var SUB = 9, SUBW = 4, SC = { u0: 0.5, u1: 0.58, u2: 0.66 };
+    var units = (1 << D) - 1 + SUBW, rowH = (tBot - tTop) / units, cum = 0, leafY = [];
+    for (var l = 0; l < (1 << D); l++) { var w = l === SUB ? SUBW : 1; leafY[l] = tTop + rowH * (cum + w / 2); cum += w; }
+    function TY(d, i) {   // a node sits midway between its first and last descendant leaf
+      var w = 1 << (D - d); return (leafY[i * w] + leafY[i * w + w - 1]) / 2;
+    }
+    ctx.globalAlpha = 1; ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.lineCap = "round";
+    for (var d = 0; d < D; d++) {
+      for (var i = 0; i < (1 << d); i++) {
+        for (var k = 0; k < 2; k++) {
+          var ci = i * 2 + k;
+          sCurve(ctx, UX(splits[d]), TY(d, i), UX(splits[d + 1]), TY(d + 1, ci), 1);
+          if (d === D - 1 && ci !== SUB) {
+            ctx.beginPath(); ctx.moveTo(UX(splits[d + 1]), TY(d + 1, ci)); ctx.lineTo(x1, TY(d + 1, ci)); ctx.stroke();
+          }
+        }
+      }
+    }
+    // the long branch and the subclone it founds
+    var sy = leafY[SUB], top4 = sy - rowH * SUBW / 2;
+    var ty = [0, 1, 2, 3].map(function (q) { return top4 + rowH * (q + 0.5); });
+    var ya = (ty[0] + ty[1]) / 2, yb = (ty[2] + ty[3]) / 2;
+    ctx.beginPath(); ctx.moveTo(UX(splits[D]), sy); ctx.lineTo(UX(SC.u0), sy); ctx.stroke();
+    sCurve(ctx, UX(SC.u0), sy, UX(SC.u1), ya, 1); sCurve(ctx, UX(SC.u0), sy, UX(SC.u1), yb, 1);
+    [[ya, 0], [ya, 1], [yb, 2], [yb, 3]].forEach(function (e) {
+      sCurve(ctx, UX(SC.u1), e[0], UX(SC.u2), ty[e[1]], 1);
+      ctx.beginPath(); ctx.moveTo(UX(SC.u2), ty[e[1]]); ctx.lineTo(x1, ty[e[1]]); ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+
+    // axis + labels
+    ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.6; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, axisY); ctx.lineTo(x1, axisY); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.fillStyle = C.muted; ctx.font = "500 10px " + C.mono; ctx.textBaseline = "top";
+    ctx.textAlign = "left"; ctx.fillText("conception", x0, axisY + 5);
+    ctx.textAlign = "right"; ctx.fillText("age 70", x1, axisY + 5);
+
+    // estimates of when two changes arose: a sharp one between the 2nd and 3rd embryonic splits,
+    // and a broader one two-thirds of the way along the long branch that founds the subclone
+    var peaks = [
+      { mu: (splits[2] + splits[3]) / 2, sd: 0.3 - 0.27 * sharp, area: 1 },
+      { mu: splits[D] + (SC.u0 - splits[D]) * 2 / 3, sd: 0.32 - 0.255 * sharp, area: 0.9 }
+    ];
+    var pts = [], n = 160, unit = (peakMax - 6) * 0.03 * 0.95;
+    for (var j = 0; j <= n; j++) {
+      var u = j / n, yv = 0;
+      peaks.forEach(function (pk) { var z = (u - pk.mu) / pk.sd; yv += unit * pk.area / pk.sd * Math.exp(-0.5 * z * z); });
+      pts.push([UX(u), axisY - Math.min(peakMax - 2, yv)]);
+    }
+    ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.moveTo(x0, axisY);
+    pts.forEach(function (p) { ctx.lineTo(p[0], p[1]); });
+    ctx.lineTo(x1, axisY); ctx.closePath();
+    ctx.fillStyle = C.sky; ctx.globalAlpha = fade * 0.2; ctx.fill();
+    ctx.globalAlpha = fade; ctx.strokeStyle = C.blue; ctx.lineWidth = 1.6;
+    ctx.beginPath(); pts.forEach(function (p, k2) { k2 ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // 3 · Blood draw: sequencing reads stream past a reading window; the inherited mark lights up as it passes
+  function hash(a, b) { var h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+  function blood(cv, t) {
+    var g = fit(cv), ctx = g.ctx, W = g.W, H = g.H;
+    var rows = 5, gapX = 13, top = 12, rowGap = (H - 24) / (rows - 1), speed = 22;
+    var off = reduce ? 0 : (t * speed) % gapX, base = reduce ? 0 : Math.floor(t * speed / gapX);
+    var wx = W / 2, ww = 30;
+    var cols = Math.ceil(W / gapX) + 2;
+    for (var c = 0; c < cols; c++) {
+      var idx = c + base, x = c * gapX - off + 4;
+      var marked = idx % 6 === 0;
+      var near = 1 - clamp((Math.abs(x - wx) - ww / 2) / 40);
+      for (var r = 0; r < rows; r++) {
+        var y = top + r * rowGap, on;
+        if (marked) on = hash(r, Math.floor(idx / 6)) < 0.45; else on = hash(idx, r + 9) < 0.5;
+        ctx.globalAlpha = 0.28 + 0.72 * near;
+        ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+        if (on) { ctx.fillStyle = marked && near > 0.5 ? C.blue : C.ink; ctx.globalAlpha *= marked ? 1 : 0.8; ctx.fill(); }
+        else { ctx.strokeStyle = C.sky; ctx.lineWidth = 1.1; ctx.stroke(); }
+      }
+    }
+    // reading window
+    ctx.globalAlpha = 1; ctx.strokeStyle = C.blue; ctx.lineWidth = 1.2;
+    var rx = wx - ww / 2, ry = 3, rh = H - 6, rr = 7;
+    ctx.beginPath();
+    ctx.moveTo(rx + rr, ry); ctx.lineTo(rx + ww - rr, ry); ctx.quadraticCurveTo(rx + ww, ry, rx + ww, ry + rr);
+    ctx.lineTo(rx + ww, ry + rh - rr); ctx.quadraticCurveTo(rx + ww, ry + rh, rx + ww - rr, ry + rh);
+    ctx.lineTo(rx + rr, ry + rh); ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rr);
+    ctx.lineTo(rx, ry + rr); ctx.quadraticCurveTo(rx, ry, rx + rr, ry); ctx.stroke();
+  }
+
+  var fns = { origins: origins, dating: dating, blood: blood };
+  var visible = new Set();
+  function frame(now) {
+    var t = now / 1000;
+    canvases.forEach(function (cv) { if (visible.has(cv) || reduce) fns[cv.dataset.anim](cv, t); });
+    if (!reduce && visible.size) raf = requestAnimationFrame(frame); else raf = 0;
+  }
+  var raf = 0;
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  // draw a resting frame immediately
+  canvases.forEach(function (cv) { fns[cv.dataset.anim](cv, cv.dataset.anim === "origins" ? 9 : 4.6); });
+  if (reduce) { window.addEventListener("resize", function () { canvases.forEach(function (cv) { fns[cv.dataset.anim](cv, 0); }); }); return; }
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { e.isIntersecting ? visible.add(e.target) : visible.delete(e.target); });
+      kick();
+    });
+    canvases.forEach(function (cv) { io.observe(cv); });
+  } else { canvases.forEach(function (cv) { visible.add(cv); }); kick(); }
+})();
+</script>
+</body>
+</html>
