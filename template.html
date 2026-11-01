@@ -109,6 +109,8 @@ section { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-top: 1px solid var(-
 .sec > header { display: grid; gap: .4rem; align-content: start; }
 .sec h2 { font-family: var(--display); font-variation-settings: "wdth" 115; font-weight: 700; font-size: 1.5rem; letter-spacing: -.015em; line-height: 1.1; margin: 0; }
 .prose p { margin: 0 0 1em; max-width: 65ch; }
+/* running text is justified on both sides; hyphenation keeps the word spacing even */
+.prose p, .theme p, .hero .sub, .featured-summary, .writing-lede, .fig figcaption > span:first-child { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
 .prose p:first-child { font-size: 1.2rem; line-height: 1.5; }
 
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.4rem 2rem; margin: 2rem 0 0; padding: 0; }
@@ -423,7 +425,16 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     CLONES.forEach(function (c) {
       var x0 = xAge(c.age), y0 = (rowY(c.lo) + rowY(c.hi)) / 2, jog = Math.max(10, gap * 2);
       var parent = tracks.filter(function (t) { return t.row === c.row && t.x0 < x0 && t.x1 > x0; })[0];
-      if (parent) { parent.x1 = x0 - jog; c.link = [x0 - jog, parent.y, x0, y0, parent.color, parent.alpha, parent.w, parent.cell]; }
+      if (parent) {
+        // the change arises partway along the parent branch; from there the branch takes the clone's colour,
+        // and the clone's first division follows a few years later
+        var mk = xAge(c.age - 6);
+        if (mk <= parent.x0 + 4) mk = (parent.x0 + x0 - jog) / 2;
+        tracks.push({ row: parent.row, y: parent.y, x0: mk, x1: x0 - jog, color: c.color, cell: c.color, alpha: 1, w: c.w });
+        parent.x1 = mk;
+        c.mark = [mk, parent.y];
+        c.link = [x0 - jog, parent.y, x0, y0, c.color, 1, c.w, c.color];
+      }
       c.x0 = x0; c.y0 = y0; c.segs = [];
       var fresh = [];
       (function split(xp, yp, lo, hi, k) {
@@ -474,12 +485,32 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 
     var fronts = [];   // [x1,y1,x2,y2,isCurve,cellColour] for every path the front can be on
     ctx.lineCap = "round";
+    var hotMark = null;
+    function bezPt(x1, y1, x2, y2, t) {
+      var m = (x1 + x2) / 2, u = 1 - t;
+      return [u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2, u*u*u*y1 + 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t*y2];
+    }
     (function branch(nd) {
       nd.kids.forEach(function (k) {
-        var blue = k.hot && k !== hot;   // the spark sits on the marked cell; only what descends from it is blue
-        ctx.strokeStyle = blue ? meth : ink; ctx.globalAlpha = (blue ? 1 : 0.5) * fade; ctx.lineWidth = blue ? 1.8 : 1.1;
-        curve(xDepth(nd.d), nd.y, xDepth(k.d), k.y);
-        fronts.push([xDepth(nd.d), nd.y, xDepth(k.d), k.y, true, blue ? meth : ink]);
+        var x1 = xDepth(nd.d), x2 = xDepth(k.d);
+        if (k === hot) {
+          // the change arises halfway along this branch: grey up to the spark, blue after it
+          var mid = bezPt(x1, nd.y, x2, k.y, 0.5);
+          hotMark = mid;
+          ctx.strokeStyle = ink; ctx.globalAlpha = 0.5 * fade; ctx.lineWidth = 1.1;
+          curve(x1, nd.y, x2, k.y);
+          ctx.strokeStyle = meth; ctx.globalAlpha = fade; ctx.lineWidth = 1.8;
+          ctx.beginPath(); ctx.moveTo(mid[0], mid[1]);
+          for (var q = 1; q <= 20; q++) { var pq = bezPt(x1, nd.y, x2, k.y, 0.5 + 0.5 * q / 20); ctx.lineTo(pq[0], pq[1]); }
+          ctx.stroke();
+          fronts.push([x1, nd.y, x2, k.y, true, ink, false, x1, mid[0]]);
+          fronts.push([x1, nd.y, x2, k.y, true, meth, false, mid[0], x2]);
+        } else {
+          var blue = !!k.hot;
+          ctx.strokeStyle = blue ? meth : ink; ctx.globalAlpha = (blue ? 1 : 0.5) * fade; ctx.lineWidth = blue ? 1.8 : 1.1;
+          curve(x1, nd.y, x2, k.y);
+          fronts.push([x1, nd.y, x2, k.y, true, blue ? meth : ink]);
+        }
         branch(k);
       });
     })(T.root);
@@ -508,7 +539,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     ctx.globalAlpha = fade;
     ctx.beginPath(); ctx.arc(xDepth(0), T.root.y, 2.6, 0, Math.PI * 2); ctx.fillStyle = ink; ctx.fill();
     var sparkR = Math.max(5, Math.min(8, gap * 0.9));
-    var marks = [[xDepth(hot.d), hot.y, meth]].concat(CLONES.map(function (c) { return [c.x0, c.y0, c.color]; }));
+    var marks = [[hotMark[0], hotMark[1], meth]].concat(CLONES.map(function (c) { return c.mark ? [c.mark[0], c.mark[1], c.color] : [c.x0, c.y0, c.color]; }));
     marks.forEach(function (m) {
       if (cursor < m[0]) return;
       var age = reduceFig ? 9 : s - timeAtX(m[0]);
@@ -539,7 +570,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     var cr = Math.max(2.2, Math.min(3.4, gap * 0.36));
     ctx.globalAlpha = fade;
     fronts.forEach(function (f) {
-      var onIt = done ? f[6] : (cursor >= f[0] && cursor < f[2]);
+      var xa = f[7] !== undefined ? f[7] : f[0], xb = f[8] !== undefined ? f[8] : f[2];
+      var onIt = done ? f[6] : (cursor >= xa && cursor < xb);
       if (!onIt) return;
       var x = done ? f[2] : cursor, y = done ? f[3] : (f[4] ? bezAt(f[0], f[1], f[2], f[3], cursor) : f[1]);
       ctx.beginPath(); ctx.arc(x, y, cr, 0, Math.PI * 2); ctx.fillStyle = f[5]; ctx.fill();
