@@ -177,7 +177,7 @@ def render_featured(pubs):
         authors = fmt_authors(hit["authors"])
     else:
         status = "Coming soon to bioRxiv"
-        action = '<span class="btn btn-ghost" aria-disabled="true">Link appears here on release</span>'
+        action = '<span class="btn btn-ghost" aria-disabled="true">Coming soon</span>'
         authors = fmt_authors(f["authors"])
     return f"""
       <article class="featured">
