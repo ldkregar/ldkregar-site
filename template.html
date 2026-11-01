@@ -99,7 +99,7 @@ a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid v
 .legend { display: flex; gap: 1.1rem; flex-wrap: wrap; }
 .legend span { display: inline-flex; align-items: center; gap: .4rem; }
 .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-.legend .m { background: var(--meth); }
+.legend .star { width: 13px; height: 13px; fill: var(--meth); flex: none; }
 .legend .ln { width: 16px; height: 2px; border-radius: 1px; }
 
 /* ---------- sections */
@@ -200,7 +200,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <canvas id="lineage" role="img" aria-label="Cell lineage tree from conception to age 70. A methylation mark gained in one embryonic cell is inherited by its descendants; one of them founds a clone at age 10 that replaces neighbouring lineages, a subclone arises within it at 40, and an unrelated clone appears at 35."></canvas>
       <figcaption>
         <span><b>Fig. 1</b> · One embryonic cell gains a methylation mark that all its descendants carry. Because this happens before tissues differentiate, the marked cell hitchhikes on normal growth and its descendants end up in several tissues across the body. That makes the mark discoverable in easily accessible tissues such as blood, which could be screened to infer an individual's risk. Over a lifetime, further changes in the affected cell population can push it along the path to disease, culminating in cancer or other diseases.</span>
-        <span class="legend"><span><i class="m"></i>embryonic mark</span><span><i class="ln" style="background:var(--meth)"></i>clone</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span><span><i class="ln" style="background:var(--unmeth)"></i>independent clone</span></span>
+        <span class="legend"><span><svg class="star" viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0,-9 L2.5,-2.5 L9,0 L2.5,2.5 L0,9 L-2.5,2.5 L-9,0 L-2.5,-2.5 Z"/></svg>embryonic mark</span><span><i class="ln" style="background:var(--meth)"></i>clone</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span><span><i class="ln" style="background:var(--unmeth)"></i>independent clone</span></span>
       </figcaption>
     </figure>
   </div>
