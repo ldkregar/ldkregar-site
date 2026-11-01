@@ -173,11 +173,11 @@ def render_featured(pubs):
     hit = next((p for p in pubs if re.sub(r"[^a-z0-9]", "", p["title"].lower()) == target), None)
     if hit:
         status = f'{e(hit["venue"])} · {e(hit["year"])}'
-        action = f'<a class="btn btn-solid" href="{e(hit["url"])}" target="_blank" rel="noopener">Read the paper</a>'
+        action = f'<div class="actions"><a class="btn btn-solid" href="{e(hit["url"])}" target="_blank" rel="noopener">Read the paper</a></div>'
         authors = fmt_authors(hit["authors"])
     else:
         status = "Coming soon to bioRxiv"
-        action = '<span class="btn btn-ghost" aria-disabled="true">Coming soon</span>'
+        action = ''   # no button until the preprint is out
         authors = fmt_authors(f["authors"])
     return f"""
       <article class="featured">
@@ -185,7 +185,7 @@ def render_featured(pubs):
         <h3 class="featured-title">{e(f['title'])}</h3>
         <p class="pub-authors">{authors}</p>
         <p class="featured-summary">{e(f['summary'])}</p>
-        <div class="actions">{action}</div>
+        {action}
       </article>"""
 
 
