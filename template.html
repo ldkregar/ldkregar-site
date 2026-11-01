@@ -29,6 +29,10 @@
   --meth: #0353A4;     /* methylated CpG — primary blue accent */
   --unmeth: #5E95CF;   /* unmethylated CpG — sky, deepened so rings read on white */
   --meth-soft: rgba(185, 214, 242, .45);
+  --lineage: #A9B6C6;                    /* unmarked lineages in Fig. 1 */
+  --band-breast: rgba(185, 214, 242, .40);
+  --band-blood: rgba(232, 150, 176, .22);
+  --band-other: rgba(140, 156, 178, .17);
   --display: "Mona Sans", "Helvetica Neue", Arial, sans-serif;
   --body: "Mona Sans", "Helvetica Neue", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -111,6 +115,7 @@ section { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-top: 1px solid var(-
 .prose p { margin: 0 0 1em; max-width: 65ch; }
 /* running text is justified on both sides; hyphenation keeps the word spacing even */
 .prose p, .theme p, .hero .sub, .featured-summary, .writing-lede, .fig figcaption > span:first-child { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+@media (max-width: 600px) { .fig figcaption > span:first-child { text-align: left; } }  /* monospace caption can't justify evenly on a phone */
 .prose p:first-child { font-size: 1.2rem; line-height: 1.5; }
 
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.4rem 2rem; margin: 2rem 0 0; padding: 0; }
@@ -197,10 +202,10 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     </header>
 
     <figure class="fig">
-      <canvas id="lineage" role="img" aria-label="Cell lineage tree from conception to age 70. A methylation mark gained in one embryonic cell is inherited by its descendants; one of them founds a clone at age 10 that replaces neighbouring lineages, a subclone arises within it at 40, and an unrelated clone appears at 35."></canvas>
+      <canvas id="lineage" role="img" aria-label="Lineage tree from conception to age 70. A methylation change arises in one early embryonic cell; its descendants spread into several tissues, making up a large part of the breast and also appearing in blood. Decades later one marked breast lineage grows into a clone, and a subclone arises within it."></canvas>
       <figcaption>
         <span><b>Fig. 1</b> · One embryonic cell gains a methylation mark that all its descendants carry. Because this happens before tissues differentiate, the marked cell hitchhikes on normal growth and its descendants end up in several tissues across the body. That makes the mark discoverable in easily accessible tissues such as blood, which could be screened to infer an individual's risk. Over a lifetime, further changes in the affected cell population can push it along the path to disease, culminating in cancer or other diseases.</span>
-        <span class="legend"><span><svg class="star" viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0,-9 L2.5,-2.5 L9,0 L2.5,2.5 L0,9 L-2.5,2.5 L-9,0 L-2.5,-2.5 Z"/></svg>embryonic mark</span><span><i class="ln" style="background:var(--meth)"></i>clone</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span><span><i class="ln" style="background:var(--unmeth)"></i>independent clone</span></span>
+        <span class="legend"><span><svg class="star" viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0,-9 L2.5,-2.5 L9,0 L2.5,2.5 L0,9 L-2.5,2.5 L-9,0 L-2.5,-2.5 Z"/></svg>new epigenetic change</span><span><i class="ln" style="background:var(--meth)"></i>marked cells</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span></span>
       </figcaption>
     </figure>
   </div>
@@ -319,64 +324,63 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
   }
 
-  // Lineage figure
+  // Figure 1: a single cell divides; its descendants travel left to right, drawing the lineage tree as they go.
+  // A change arises on one early embryonic branch (spark); its descendants (blue) end up in several tissues,
+  // including blood. Decades later a clone grows from one marked breast lineage, and a subclone within it.
   var cv = document.getElementById("lineage");
   if (!cv) return;
   var ctx = cv.getContext("2d");
-
-  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-
-  // Build a binary lineage of embryonic divisions (fixed seed so it always looks the same)
-  var DEPTH = 5;
-  function build() {
-    var leaves = [];
-    function node(d) {
-      var n = { d: d, kids: [] };
-      if (d < DEPTH) { n.kids = [node(d + 1), node(d + 1)]; } else { leaves.push(n); }
-      return n;
-    }
-    var root = node(0);
-    leaves.forEach(function (l, i) { l.i = i; });
-    (function ys(n) { if (!n.kids.length) return; n.kids.forEach(ys); })(root);
-    return { root: root, leaves: leaves };
-  }
-  var T = build();
-  // Mark the epimutation on one depth-2 node
-  var hot = T.root.kids[0].kids[1];
-  (function flag(n) { n.hot = true; n.kids.forEach(flag); })(hot);
-  hot.origin = true;
-  var hotLeaves = T.leaves.filter(function (l) { return l.hot; });
-  var cloneLeaf = hotLeaves[Math.floor(hotLeaves.length / 2)];
-
-  function col(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-  // Figure 1 as an animation: a single cell divides, its descendants travel left to right and leave their
-  // lineages behind as a trace. Sparks mark where heritable changes arise; the clones they found are coloured.
   var reduceFig = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var FIG = { L: 15, start: 1.0, embryoEnd: 4.6, sweepEnd: 11.2, fadeAt: 14.2 };
+  function col(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-  function bezAt(x1, y1, x2, y2, x) {   // y on the S-curve at a given x (x is monotonic along the curve)
+  // Lineage tree (y as a fraction of the plot height). Each leaf ends in a tissue row.
+  //   root → A, B;  A → A1, A2 (A2 carries the change);  A2 → A2a, A2b → four leaves
+  var TREE = { id: "root", kids: [
+    { id: "A", kids: [
+      { id: "A1", kids: [{ leaf: "A1a" }, { leaf: "A1b" }] },
+      { id: "A2", marked: true, kids: [
+        { id: "A2a", kids: [{ leaf: "A2a1" }, { leaf: "A2a2" }] },
+        { id: "A2b", kids: [{ leaf: "A2b1" }, { leaf: "A2b2" }] } ] } ] },
+    { id: "B", kids: [
+      { id: "B1", kids: [{ leaf: "B1a" }, { leaf: "B1b" }] },
+      { id: "B2", kids: [{ leaf: "B2a" }, { leaf: "B2b" }] } ] } ] };
+  var ROWS = { A1a: 0.03, A1b: 0.12, A2a1: 0.22, A2a2: 0.32, A2b1: 0.455, A2b2: 0.585, B1a: 0.665, B1b: 0.83, B2a: 0.905, B2b: 0.98 };
+  var BANDS = [
+    { name: "Breast", lo: 0.0, hi: 0.475, fill: "--band-breast" },
+    { name: "Blood", lo: 0.56, hi: 0.69, fill: "--band-blood" },
+    { name: "Other tissues", short: "Other", lo: 0.81, hi: 1.0, fill: "--band-other" } ];
+  (function layout(n, lo, hi, d, marked) {
+    n.d = d; n.marked = !!(marked || n.marked);
+    if (n.leaf) { n.ty = (lo + hi) / 2; return n.ty; }
+    var w = (hi - lo) / n.kids.length;
+    n.ty = n.kids.reduce(function (s, k, i) { return s + layout(k, lo + w * i, lo + w * (i + 1), d + 1, n.marked); }, 0) / n.kids.length;
+    return n.ty;
+  })(TREE, 0, 1, 0, false);
+
+  function bezAt(x1, y1, x2, y2, x) {   // y on the S-curve at a given x
     var m = (x1 + x2) / 2, lo = 0, hi = 1, t = 0.5;
-    for (var i = 0; i < 22; i++) {
-      t = (lo + hi) / 2; var u = 1 - t;
-      var xt = u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2;
-      if (xt < x) lo = t; else hi = t;
-    }
+    for (var i = 0; i < 22; i++) { t = (lo + hi) / 2; var u = 1 - t; var xt = u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2; if (xt < x) lo = t; else hi = t; }
     var u2 = 1 - t; return u2*u2*u2*y1 + 3*u2*u2*t*y1 + 3*u2*t*t*y2 + t*t*t*y2;
+  }
+  function bezPt(x1, y1, x2, y2, t) {
+    var m = (x1 + x2) / 2, u = 1 - t;
+    return [u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2, u*u*u*y1 + 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t*y2];
   }
   function spark(x, y, R, color, age, t) {
     if (age <= 0) return;
     var burst = Math.min(1, age / 0.6), pop = age < 0.25 ? (age / 0.25) * 1.35 : 1 + 0.35 * Math.max(0, 1 - (age - 0.25) / 0.4);
     ctx.strokeStyle = color; ctx.fillStyle = color;
+    var a0 = ctx.globalAlpha;
     if (burst < 1) {
-      ctx.globalAlpha = 1 - burst; ctx.lineWidth = 1.4;
+      ctx.globalAlpha = a0 * (1 - burst); ctx.lineWidth = 1.4;
       for (var k = 0; k < 8; k++) {
         var a = k * Math.PI / 4 + Math.PI / 8, r1 = R * (0.8 + 1.4 * burst), r2 = r1 + R * 0.8 * (1 - burst * 0.5);
         ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); ctx.lineTo(x + Math.cos(a) * r2, y + Math.sin(a) * r2); ctx.stroke();
       }
     }
     var RR = R * pop, rIn = RR * 0.28, rot = reduceFig ? 0 : Math.sin(t * 1.4) * 0.12;
-    ctx.globalAlpha = 1; ctx.beginPath();
+    ctx.globalAlpha = a0; ctx.beginPath();
     for (var q = 0; q < 8; q++) {
       var a2 = rot + q * Math.PI / 4 - Math.PI / 2, rad = q % 2 ? rIn : RR;
       q ? ctx.lineTo(x + Math.cos(a2) * rad, y + Math.sin(a2) * rad) : ctx.moveTo(x + Math.cos(a2) * rad, y + Math.sin(a2) * rad);
@@ -385,176 +389,144 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   }
 
   function draw(time) {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var W = cv.clientWidth, H = cv.clientHeight;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
     if (!W || !H) return;
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
 
-    var ink = col("--ink"), muted = col("--muted"), line = col("--line"), meth = col("--meth"), sky = col("--unmeth"), paper = col("--paper");
+    var ink = col("--ink"), muted = col("--muted"), meth = col("--meth"), paper = col("--paper");
+    var grey = col("--lineage");
     var narrow = W < 560;
-    var padL = 8, padR = 8, top = 26, axisY = H - 24, bottom = axisY - 12;
-    var xEnd = W - padR - 2;
-
-    // Time axis: embryo (conception→8 wk) is stretched, then birth, then ages 0–70
-    var xEmbryoEnd = padL + (xEnd - padL) * 0.26;
-    var xBirth = padL + (xEnd - padL) * 0.37;
+    var labelW = narrow ? 44 : 92;
+    var padL = 8, top = 30, axisY = H - 24, bottom = axisY - 14, xEnd = W - labelW - 6;
+    var xEmbryoEnd = padL + (xEnd - padL) * 0.24, xBirth = padL + (xEnd - padL) * 0.37;
+    var xSortEnd = xBirth + (xEnd - xBirth) * 0.06;
     function xAge(a) { return xBirth + (xEnd - xBirth) * (a / 70); }
-    function xDepth(d) { return padL + 6 + (xEmbryoEnd - padL - 6) * (d / DEPTH); }
+    var D = 4;
+    function xDepth(d) { return padL + 6 + (xEmbryoEnd - padL - 6) * (d / D); }
+    function Y(f) { return top + (bottom - top) * f; }
+    var span = bottom - top, unit = span / 10;
 
-    var n = T.leaves.length, span = bottom - top, gap = span / n;
-    function rowY(r) { return top + span * (r + 0.5) / n; }
-    T.leaves.forEach(function (l) { l.y = rowY(l.i); });
-    (function setY(nd) { if (!nd.kids.length) return nd.y; nd.y = (setY(nd.kids[0]) + setY(nd.kids[1])) / 2; return nd.y; })(T.root);
-
-    function curve(x1, y1, x2, y2) {
-      var mx = (x1 + x2) / 2;
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.bezierCurveTo(mx, y1, mx, y2, x2, y2); ctx.stroke();
-    }
-
-    // ---------- geometry (as in the static figure)
-    var tracks = T.leaves.map(function (l) {
-      return { row: l.i, y: l.y, x0: xDepth(DEPTH), x1: xEnd, color: l.hot ? meth : line, cell: l.hot ? meth : muted, alpha: l.hot ? 0.6 : 1, w: 1 };
-    });
-    var CLONES = [
-      { row: 12, age: 10, lo: 8,  hi: 15, ages: [14, 19, 25], color: meth, w: 1.7 },
-      { row: 23, age: 35, lo: 22, hi: 25, ages: [40, 46],     color: sky,  w: 1.7 },
-      { row: 13, age: 40, lo: 12, hi: 15, ages: [45, 51],     color: ink,  w: 1.9 }
-    ];
-    CLONES.forEach(function (c) {
-      var x0 = xAge(c.age), y0 = (rowY(c.lo) + rowY(c.hi)) / 2, jog = Math.max(10, gap * 2);
-      var parent = tracks.filter(function (t) { return t.row === c.row && t.x0 < x0 && t.x1 > x0; })[0];
-      if (parent) {
-        // the change arises partway along the parent branch; from there the branch takes the clone's colour,
-        // and the clone's first division follows a few years later
-        var mk = xAge(c.age - 6);
-        if (mk <= parent.x0 + 4) mk = (parent.x0 + x0 - jog) / 2;
-        tracks.push({ row: parent.row, y: parent.y, x0: mk, x1: x0 - jog, color: c.color, cell: c.color, alpha: 1, w: c.w });
-        parent.x1 = mk;
-        c.mark = [mk, parent.y];
-        c.link = [x0 - jog, parent.y, x0, y0, c.color, 1, c.w, c.color];
-      }
-      c.x0 = x0; c.y0 = y0; c.segs = [];
-      var fresh = [];
-      (function split(xp, yp, lo, hi, k) {
-        if (lo === hi) { fresh.push({ row: lo, y: rowY(lo), x0: xp, x1: xEnd, color: c.color, cell: c.color, alpha: 1, w: c.w }); return; }
-        var mid = Math.floor((lo + hi) / 2), xc = xAge(c.ages[k]);
-        [[lo, mid], [mid + 1, hi]].forEach(function (rg) {
-          var yc = (rowY(rg[0]) + rowY(rg[1])) / 2;
-          c.segs.push([xp, yp, xc, yc]);
-          split(xc, yc, rg[0], rg[1], k + 1);
-        });
-      })(x0, y0, c.lo, c.hi, 0);
-      c.segs.forEach(function (s) {
-        var ya = Math.min(s[1], s[3]) - 0.5, yb = Math.max(s[1], s[3]) + 0.5;
-        tracks.forEach(function (t) {
-          if (t === parent || t.row < c.lo || t.row > c.hi) return;
-          if (t.y >= ya && t.y <= yb && t.x1 > s[0]) t.x1 = Math.max(t.x0, s[0] - 3);
-        });
-      });
-      tracks = tracks.concat(fresh);
-    });
-
-    // ---------- where the travelling front is
+    // ---------- front position
     var s = reduceFig ? FIG.sweepEnd + 1 : time % FIG.L, cursor;
     if (s < FIG.start) cursor = xDepth(0);
     else if (s < FIG.embryoEnd) cursor = xDepth(0) + (xEmbryoEnd - xDepth(0)) * ((s - FIG.start) / (FIG.embryoEnd - FIG.start));
     else cursor = xEmbryoEnd + (xEnd - xEmbryoEnd) * Math.min(1, (s - FIG.embryoEnd) / (FIG.sweepEnd - FIG.embryoEnd));
     var done = cursor >= xEnd - 0.01;
     var fade = 1 - Math.min(1, Math.max(0, (s - FIG.fadeAt) / 0.8));
-    function timeAtX(x) {   // when the front passed a given x
+    function timeAtX(x) {
       if (x <= xEmbryoEnd) return FIG.start + (FIG.embryoEnd - FIG.start) * (x - xDepth(0)) / (xEmbryoEnd - xDepth(0));
       return FIG.embryoEnd + (FIG.sweepEnd - FIG.embryoEnd) * (x - xEmbryoEnd) / (xEnd - xEmbryoEnd);
     }
 
-    // ---------- the trace: everything to the left of the front
-    ctx.save();
-    ctx.globalAlpha = fade;
-    ctx.beginPath(); ctx.rect(0, 0, cursor + 0.5, H); ctx.clip();
-
-    ctx.fillStyle = col("--meth-soft"); ctx.globalAlpha = 0.45 * fade;
-    ctx.fillRect(padL, top - 6, xEmbryoEnd - padL, span + 12);
-    CLONES.forEach(function (c) {
-      var xl = xAge(c.ages[c.ages.length - 1]), yt = rowY(c.lo) - gap * 0.5, yb = rowY(c.hi) + gap * 0.5, mx = (c.x0 + xl) / 2;
-      ctx.beginPath(); ctx.moveTo(c.x0, c.y0);
-      ctx.bezierCurveTo(mx, c.y0, mx, yt, xl, yt); ctx.lineTo(xEnd, yt); ctx.lineTo(xEnd, yb); ctx.lineTo(xl, yb);
-      ctx.bezierCurveTo(mx, yb, mx, c.y0, c.x0, c.y0); ctx.closePath();
-      ctx.fillStyle = c.color; ctx.globalAlpha = 0.07 * fade; ctx.fill();
-    });
-
-    var fronts = [];   // [x1,y1,x2,y2,isCurve,cellColour] for every path the front can be on
-    ctx.lineCap = "round";
-    var hotMark = null;
-    function bezPt(x1, y1, x2, y2, t) {
-      var m = (x1 + x2) / 2, u = 1 - t;
-      return [u*u*u*x1 + 3*u*u*t*m + 3*u*t*t*m + t*t*t*x2, u*u*u*y1 + 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t*y2];
-    }
-    (function branch(nd) {
-      nd.kids.forEach(function (k) {
-        var x1 = xDepth(nd.d), x2 = xDepth(k.d);
-        if (k === hot) {
-          // the change arises halfway along this branch: grey up to the spark, blue after it
-          var mid = bezPt(x1, nd.y, x2, k.y, 0.5);
-          hotMark = mid;
-          ctx.strokeStyle = ink; ctx.globalAlpha = 0.5 * fade; ctx.lineWidth = 1.1;
-          curve(x1, nd.y, x2, k.y);
-          ctx.strokeStyle = meth; ctx.globalAlpha = fade; ctx.lineWidth = 1.8;
-          ctx.beginPath(); ctx.moveTo(mid[0], mid[1]);
-          for (var q = 1; q <= 20; q++) { var pq = bezPt(x1, nd.y, x2, k.y, 0.5 + 0.5 * q / 20); ctx.lineTo(pq[0], pq[1]); }
-          ctx.stroke();
-          fronts.push([x1, nd.y, x2, k.y, true, ink, false, x1, mid[0]]);
-          fronts.push([x1, nd.y, x2, k.y, true, meth, false, mid[0], x2]);
-        } else {
-          var blue = !!k.hot;
-          ctx.strokeStyle = blue ? meth : ink; ctx.globalAlpha = (blue ? 1 : 0.5) * fade; ctx.lineWidth = blue ? 1.8 : 1.1;
-          curve(x1, nd.y, x2, k.y);
-          fronts.push([x1, nd.y, x2, k.y, true, blue ? meth : ink]);
-        }
-        branch(k);
+    // ---------- geometry: every path a cell can travel, as [x1,y1,x2,y2,curve?,colour,width,endsAtTip,xa,xb]
+    var paths = [], mark = null;
+    (function walk(n) {
+      if (n.leaf) return;
+      n.kids.forEach(function (k) {
+        var x1 = xDepth(n.d), y1 = Y(n.ty), x2 = xDepth(k.d), y2 = Y(k.ty);
+        var c = k.marked ? meth : grey, w = k.marked ? 1.9 : 1.3;
+        if (k.id === "A2") {   // the change arises halfway along this branch
+          var mp = bezPt(x1, y1, x2, y2, 0.5); mark = mp;
+          paths.push([x1, y1, x2, y2, true, grey, 1.3, false, x1, mp[0]]);
+          paths.push([x1, y1, x2, y2, true, meth, 1.9, false, mp[0], x2]);
+        } else paths.push([x1, y1, x2, y2, true, c, w, false]);
+        walk(k);
       });
-    })(T.root);
-    tracks.forEach(function (t) {
-      if (t.x1 - t.x0 < 1) return;
-      ctx.strokeStyle = t.color; ctx.globalAlpha = t.alpha * fade; ctx.lineWidth = t.w;
-      ctx.beginPath(); ctx.moveTo(t.x0, t.y); ctx.lineTo(t.x1, t.y); ctx.stroke();
-      fronts.push([t.x0, t.y, t.x1, t.y, false, t.cell, t.x1 >= xEnd - 0.5]);
+    })(TREE);
+    var leaves = [];
+    (function collect(n) { if (n.leaf) leaves.push(n); else n.kids.forEach(collect); })(TREE);
+    var cloneY = Y(ROWS.A2a2), cloneSpark = xAge(36), cloneStart = xAge(42), subSpark = xAge(52), subStart = xAge(57);
+    leaves.forEach(function (l) {
+      var c = l.marked ? meth : grey, w = l.marked ? 1.9 : 1.3, ty = Y(ROWS[l.leaf]), x0 = xDepth(l.d), y0 = Y(l.ty);
+      if (x0 < xEmbryoEnd) paths.push([x0, y0, xEmbryoEnd, y0, false, c, w, false]);
+      paths.push([xEmbryoEnd, y0, xSortEnd, ty, true, c, w, false]);
+      if (l.leaf === "A2a2") {
+        paths.push([xSortEnd, ty, cloneStart, ty, false, c, w, false]);
+        paths.push([cloneStart, ty, xEnd, ty, false, meth, 0, true]);   // centre of the clone (cell marker only)
+      } else paths.push([xSortEnd, ty, xEnd, ty, false, c, w, true]);
     });
-    CLONES.forEach(function (c) {
-      if (c.link) {
-        ctx.strokeStyle = c.link[4]; ctx.globalAlpha = c.link[5] * fade; ctx.lineWidth = c.link[6];
-        curve(c.link[0], c.link[1], c.link[2], c.link[3]);
-        fronts.push([c.link[0], c.link[1], c.link[2], c.link[3], true, c.link[7]]);
-      }
-      ctx.strokeStyle = c.color; ctx.globalAlpha = fade; ctx.lineWidth = c.w;
-      c.segs.forEach(function (sg) { curve(sg[0], sg[1], sg[2], sg[3]); fronts.push([sg[0], sg[1], sg[2], sg[3], true, c.color]); });
-    });
+    function wedge(x0, h) {   // half-height of a clone at x: grows smoothly from x0 to the end
+      return function (x) { var f = Math.max(0, Math.min(1, (x - x0) / (xEnd - x0))); return h * (1 - Math.pow(1 - f, 2.2)); };
+    }
+    var cloneH = wedge(cloneStart, unit * 0.62), subH = wedge(subStart, unit * 0.34);
 
-    // axis line grows with the front
+    // ---------- trace (clipped to the front)
+    ctx.save(); ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.rect(0, 0, cursor + 0.5, H); ctx.clip();
+    ctx.fillStyle = col("--meth-soft"); ctx.globalAlpha = 0.45 * fade;
+    ctx.fillRect(padL, top - 8, xEmbryoEnd - padL, span + 16);
+    BANDS.forEach(function (b) {
+      var bx = xBirth - 6, by = Y(b.lo) - unit * 0.35, bh = Y(b.hi) - Y(b.lo) + unit * 0.7, r = 6;
+      ctx.globalAlpha = fade; ctx.fillStyle = col(b.fill);
+      ctx.beginPath(); ctx.moveTo(bx + r, by); ctx.arcTo(xEnd + 4, by, xEnd + 4, by + bh, r); ctx.arcTo(xEnd + 4, by + bh, bx, by + bh, r);
+      ctx.arcTo(bx, by + bh, bx, by, r); ctx.arcTo(bx, by, xEnd + 4, by, r); ctx.closePath(); ctx.fill();
+    });
+    ctx.lineCap = "round";
+    [false, true].forEach(function (marked) {   // grey first, so blue lineages sit on top where they cross
+      paths.forEach(function (p) {
+        if (!p[6] || (p[5] === meth) !== marked) return;
+        ctx.strokeStyle = p[5]; ctx.lineWidth = p[6]; ctx.globalAlpha = fade;
+        var xa = p[8] !== undefined ? p[8] : p[0], xb = p[9] !== undefined ? p[9] : p[2];
+        ctx.beginPath();
+        if (!p[4]) { ctx.moveTo(xa, p[1]); ctx.lineTo(xb, p[3]); }
+        else {
+          var steps = 28; ctx.moveTo(xa, bezAt(p[0], p[1], p[2], p[3], xa));
+          for (var q = 1; q <= steps; q++) { var xq = xa + (xb - xa) * q / steps; ctx.lineTo(xq, bezAt(p[0], p[1], p[2], p[3], xq)); }
+        }
+        ctx.stroke();
+      });
+    });
+    function fillWedge(x0, hf, color) {
+      ctx.beginPath(); ctx.moveTo(x0, cloneY);
+      for (var q = 0; q <= 40; q++) { var x = x0 + (xEnd - x0) * q / 40; ctx.lineTo(x, cloneY - hf(x)); }
+      for (var q2 = 40; q2 >= 0; q2--) { var x2 = x0 + (xEnd - x0) * q2 / 40; ctx.lineTo(x2, cloneY + hf(x2)); }
+      ctx.closePath(); ctx.fillStyle = color; ctx.globalAlpha = fade; ctx.fill();
+    }
+    fillWedge(cloneStart, cloneH, meth);
+    fillWedge(subStart, subH, ink);
     ctx.strokeStyle = muted; ctx.globalAlpha = 0.6 * fade; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(padL, axisY); ctx.lineTo(xEnd, axisY); ctx.stroke();
     ctx.restore();
 
-    // ---------- root, sparks, labels
+    // ---------- root, sparks
     ctx.globalAlpha = fade;
-    ctx.beginPath(); ctx.arc(xDepth(0), T.root.y, 2.6, 0, Math.PI * 2); ctx.fillStyle = ink; ctx.fill();
-    var sparkR = Math.max(5, Math.min(8, gap * 0.9));
-    var marks = [[hotMark[0], hotMark[1], meth]].concat(CLONES.map(function (c) { return c.mark ? [c.mark[0], c.mark[1], c.color] : [c.x0, c.y0, c.color]; }));
-    marks.forEach(function (m) {
+    ctx.beginPath(); ctx.arc(xDepth(0), Y(TREE.ty), 2.6, 0, Math.PI * 2); ctx.fillStyle = ink; ctx.fill();
+    var sparkR = Math.max(5, Math.min(8, unit * 0.32));
+    [[mark[0], mark[1], meth], [cloneSpark, cloneY, meth], [subSpark, cloneY, ink]].forEach(function (m) {
       if (cursor < m[0]) return;
-      var age = reduceFig ? 9 : s - timeAtX(m[0]);
       ctx.save(); ctx.globalAlpha = fade;
-      ctx.beginPath(); ctx.arc(m[0], m[1], sparkR * 0.75, 0, Math.PI * 2); ctx.fillStyle = paper; ctx.fill();
-      spark(m[0], m[1], sparkR, m[2], age, time);
+      var onClone = m[2] === ink;
+      if (!onClone) { ctx.beginPath(); ctx.arc(m[0], m[1], sparkR * 0.75, 0, Math.PI * 2); ctx.fillStyle = paper; ctx.fill(); }
+      spark(m[0], m[1], sparkR * (onClone ? 0.85 : 1), onClone ? paper : m[2], reduceFig ? 9 : s - timeAtX(m[0]), time);
       ctx.restore();
     });
 
-    ctx.globalAlpha = fade;
-    ctx.font = "500 10.5px " + col("--mono"); ctx.fillStyle = muted;
-    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
-    ctx.globalAlpha = fade * Math.min(1, Math.max(0, (cursor - xDepth(0)) / 40));
-    ctx.fillText(narrow ? "early embryo" : "early embryonic divisions", padL, top - 12);
-    ctx.textBaseline = "top"; ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    // ---------- labels: tissue names, annotations, axis
+    ctx.font = "600 " + (narrow ? 10.5 : 12.5) + "px " + col("--body"); ctx.fillStyle = ink; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    BANDS.forEach(function (b) {
+      var a = done ? 1 : Math.max(0, Math.min(1, (cursor - xBirth) / 30));
+      if (a <= 0) return;
+      ctx.globalAlpha = fade * a;
+      var label = narrow && b.short ? b.short : b.name, cy = (Y(b.lo) + Y(b.hi)) / 2;
+      if (!narrow && label === "Other tissues") { ctx.fillText("Other", xEnd + 12, cy - 8); ctx.fillText("tissues", xEnd + 12, cy + 8); }
+      else ctx.fillText(label, xEnd + 10, cy);
+    });
+    ctx.font = "500 10.5px " + col("--mono"); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    ctx.globalAlpha = fade * Math.min(1, Math.max(0, (cursor - xDepth(0)) / 40)); ctx.fillStyle = muted;
+    ctx.fillText(narrow ? "early embryo" : "early embryonic divisions", padL, top - 14);
+    if (!narrow) {
+      var notes = [
+        [xAge(18), Y(ROWS.A2b2) - 7, "same mark, detectable in blood", meth, xAge(18)],
+        [xEnd - 4, cloneY + unit * 0.62 + 13, "clone → cancer, decades later", ink, xAge(48), "right"] ];
+      notes.forEach(function (n) {
+        var a = done ? 1 : Math.max(0, Math.min(1, (cursor - n[4]) / 30));
+        if (a <= 0) return;
+        ctx.globalAlpha = fade * a; ctx.fillStyle = n[3]; ctx.textAlign = n[5] || "left"; ctx.fillText(n[2], n[0], n[1]);
+      });
+      ctx.textAlign = "left";
+    }
+    ctx.textBaseline = "top"; ctx.strokeStyle = muted; ctx.lineWidth = 1; ctx.fillStyle = muted;
     var ticks = [[xDepth(0), "conception", "left"], [xEmbryoEnd, "8 weeks", "center"], [xBirth, "birth", "center"],
                  [xAge(20), "20", "center"], [xAge(40), "40", "center"], [xAge(60), "60", "center"], [xEnd, "70 yrs", "right"]];
     if (narrow) ticks = ticks.filter(function (tk) { return tk[1] !== "20" && tk[1] !== "60" && tk[1] !== "8 weeks"; });
@@ -566,27 +538,28 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       ctx.textAlign = tk[2]; ctx.fillText(tk[1], tk[0], axisY + 7);
     });
 
-    // ---------- the cells at the front
-    var cr = Math.max(2.2, Math.min(3.4, gap * 0.36));
+    // ---------- cells at the front
+    var cr = Math.max(2.4, Math.min(3.6, unit * 0.13));
     ctx.globalAlpha = fade;
-    fronts.forEach(function (f) {
-      var xa = f[7] !== undefined ? f[7] : f[0], xb = f[8] !== undefined ? f[8] : f[2];
-      var onIt = done ? f[6] : (cursor >= xa && cursor < xb);
+    paths.forEach(function (p) {
+      var xa = p[8] !== undefined ? p[8] : p[0], xb = p[9] !== undefined ? p[9] : p[2];
+      var onIt = done ? p[7] : (cursor >= xa && cursor < xb);
       if (!onIt) return;
-      var x = done ? f[2] : cursor, y = done ? f[3] : (f[4] ? bezAt(f[0], f[1], f[2], f[3], cursor) : f[1]);
-      ctx.beginPath(); ctx.arc(x, y, cr, 0, Math.PI * 2); ctx.fillStyle = f[5]; ctx.fill();
+      var x = done ? p[2] : cursor, y = done ? p[3] : (p[4] ? bezAt(p[0], p[1], p[2], p[3], cursor) : p[1]);
+      var c = p[5];
+      if (p[7] && p[3] === cloneY && x >= subStart) c = ink;
+      ctx.beginPath(); ctx.arc(x, y, cr, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill();
     });
     ctx.globalAlpha = 1;
   }
 
-  // run while visible; reduced motion shows the finished figure
   var figClock = null, figVisible = false, figRaf = 0;
   function figFrame(now) {
     if (figClock === null) figClock = now;
     draw((now - figClock) / 1000);
     figRaf = figVisible && !reduceFig ? requestAnimationFrame(figFrame) : 0;
   }
-  draw(FIG.sweepEnd + 1);   // finished figure as the resting frame until it scrolls into view
+  draw(FIG.sweepEnd + 1);
   if (!reduceFig && "IntersectionObserver" in window) {
     new IntersectionObserver(function (es) {
       figVisible = es[0].isIntersecting;
