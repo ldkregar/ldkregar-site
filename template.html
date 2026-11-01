@@ -202,10 +202,10 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     </header>
 
     <figure class="fig">
-      <canvas id="lineage" role="img" aria-label="Lineage tree from conception to age 70. A methylation change arises in one early embryonic cell; its descendants spread into several tissues, making up a large part of the breast and also appearing in blood. Decades later one marked breast lineage grows into a clone, and a subclone arises within it."></canvas>
+      <canvas id="lineage" role="img" aria-label="Lineage tree from conception to age 70. A methylation change arises in one early embryonic cell; its descendants spread into several tissues, making up a large part of the breast and also appearing in blood. Decades later one marked breast lineage grows into a clone, and a subclone arises within it; an unrelated clone also appears in blood at about age 42."></canvas>
       <figcaption>
         <span><b>Fig. 1</b> · One embryonic cell gains a methylation mark that all its descendants carry. Because this happens before tissues differentiate, the marked cell hitchhikes on normal growth and its descendants end up in several tissues across the body. That makes the mark detectable in easily accessible tissues such as blood, which could be screened to infer an individual's risk. Over a lifetime, further changes in the affected cell population can push it along the path to disease, culminating in cancer or other diseases.</span>
-        <span class="legend"><span><svg class="star" viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0,-9 L2.5,-2.5 L9,0 L2.5,2.5 L0,9 L-2.5,2.5 L-9,0 L-2.5,-2.5 Z"/></svg>new epigenetic change</span><span><i class="ln" style="background:var(--meth)"></i>marked cells</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span></span>
+        <span class="legend"><span><svg class="star" viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0,-9 L2.5,-2.5 L9,0 L2.5,2.5 L0,9 L-2.5,2.5 L-9,0 L-2.5,-2.5 Z"/></svg>new epigenetic change</span><span><i class="ln" style="background:var(--meth)"></i>marked cells</span><span><i class="ln" style="background:var(--ink)"></i>subclone</span><span><i class="ln" style="background:var(--unmeth)"></i>independent clone</span></span>
       </figcaption>
     </figure>
   </div>
@@ -443,7 +443,9 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     // Clones in the breast: a spark on the lineage, then it divides and its branches displace their neighbours
     var CLONES = [
       { row: 9, mark: 32, age: 38, lo: 6, hi: 13, ages: [43, 47, 51], color: meth, w: 1.9 },
-      { row: 11, mark: 52, age: 57, lo: 10, hi: 13, ages: [61, 65], color: ink, w: 2.1 } ];
+      { row: 11, mark: 52, age: 57, lo: 10, hi: 13, ages: [61, 65], color: ink, w: 2.1 },
+      // an unrelated clone in blood, from an unmarked lineage
+      { row: 18, mark: 42, age: 47, lo: 17, hi: 20, ages: [51, 55], color: col("--unmeth"), w: 1.9 } ];
     var jog = Math.max(10, gap * 2.5);
     CLONES.forEach(function (c) {
       var x0 = xAge(c.age), y0 = (rowY(c.lo) + rowY(c.hi)) / 2, xm = xAge(c.mark);
@@ -488,7 +490,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       ctx.arcTo(bx, by + bh, bx, by, r); ctx.arcTo(bx, by, bxr, by, r); ctx.closePath(); ctx.fill();
     });
     ctx.lineCap = "round";
-    [grey, meth, ink].forEach(function (layer) {   // grey first, then blue, then the subclone on top
+    [grey, col("--unmeth"), meth, ink].forEach(function (layer) {   // grey first, then blue, then the subclone on top
       paths.forEach(function (p) {
         if (p[5] !== layer) return;
         ctx.strokeStyle = p[5]; ctx.lineWidth = p[6]; ctx.globalAlpha = fade;
